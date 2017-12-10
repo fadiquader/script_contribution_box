@@ -9,7 +9,7 @@ function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
         left: typeaheadState.left,
         top: typeaheadState.top
     }
-    const filteredPeople = filterPeople(typeaheadState.text.replace(/^(@|\()/, ''));
+    const filteredPeople =  filterPeople(typeaheadState.text.replace(/^(@|\()/, ''));
     const normalizedIndex = normalizeSelectedIndex(typeaheadState.selectedIndex, filteredPeople.length);
     return (
         <ul className={'typeahead'} style={typeaheadStyle}>
@@ -22,11 +22,18 @@ function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
                             onTypeheadClick(index) ;
                             focus();
                         }}
+                        onContextMenu={(e) => {
+                            e.preventDefault();
+                            onTypeheadClick(index) ;
+                        }}
                         key={`mention_${index}`}>
                         {person}
                     </li>
                 );
             })}
+            <li className="add-character" onMouseDown={() => onTypeheadClick(-1)}>
+                <span>Add Character</span>
+            </li>
         </ul>
     );
 }

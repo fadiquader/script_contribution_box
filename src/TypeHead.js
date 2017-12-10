@@ -56,8 +56,8 @@ class TypeaheadEditor extends Editor {
     getTypeaheadState(invalidate = true) {
         if (!invalidate) return this.typeaheadState;
         const typeaheadRange = this.getTypeaheadRange();
-
-        if (!typeaheadRange) {
+        if(this.props.stackMode) return this.typeaheadState;
+            if (!typeaheadRange) {
             this.typeaheadState = null;
             return null;
         }

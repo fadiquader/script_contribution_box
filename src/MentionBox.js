@@ -50,16 +50,12 @@ const PEOPLE = [
 const {hasCommandModifier} = KeyBindingUtil;
 
 const blockRenderMap = Map({
-    // 'action': {
-    //     // element: 'section',
-    //     wrapper: Action
-    // },
     // 'character': {
-    //     // element: 'section',
+    //     element: 'div',
     //     wrapper: Character
     // },
     // 'dialogue': {
-    //     // element: 'section',
+    //     element: 'div',
     //     wrapper: Dialogue
     // }
 });
@@ -84,14 +80,6 @@ const myKeyBindingFn = (e) => {
     return getDefaultKeyBinding(e);
 };
 
-// const blockRenderMap = Immutable.Map({
-//     'action': {
-//         // element is used during paste or html conversion to auto match your component;
-//         // it is also retained as part of this.props.children and not stripped out
-//         element: 'section',
-//         wrapper: Character,
-//     }
-// });
 export default class MentionsEditorExample extends Component {
     constructor() {
         super();
@@ -99,6 +87,7 @@ export default class MentionsEditorExample extends Component {
             editorState: EditorState.createEmpty(decorator),
             typeaheadState: null
         };
+        this.stackMode = false;
     }
     onChange = (editorState, foucusOnLastBlock=false) => {
         this.setState({ editorState }, () => {
@@ -181,7 +170,8 @@ export default class MentionsEditorExample extends Component {
         return <Mentions  typeaheadState = { this.state.typeaheadState}
                           onMouseOver={this.onMentionMouseOver}
                           onTypeheadClick={this.onTypeheadClick}
-                          focus={this.editorFoucs}/>;
+                          focus={this.editorFoucs}
+        />;
     }
 
     onMentionMouseOver = index => {
@@ -216,9 +206,15 @@ export default class MentionsEditorExample extends Component {
     }
 
     onTypeheadClick = (selectedIndex) => {
+        console.log(selectedIndex)
+        if(selectedIndex === -1) {
+            this.stackMode = true
+            return ;
+        }
+        this.stackMode = false;
         const contentState = this.state.editorState.getCurrentContent();
         const selection = contentState.getSelectionAfter();
-        const { text } = this.getTypeaheadRange()
+        const { text } = this.getTypeaheadRange();
         const entitySelection = selection.set(
             'anchorOffset', selection.getFocusOffset() - text.length
         );
@@ -239,7 +235,6 @@ export default class MentionsEditorExample extends Component {
         let newEditorState = this.insertCharacter('character');
         const { currentBlock } = this.getCurrentAndBeforBlocks(editorState);
         const currentType = currentBlock.getType();
-        console.log()
         if(currentType == 'character') {
             newEditorState = this.addEmptyBlock(editorState, 'character')
         }
@@ -314,13 +309,17 @@ export default class MentionsEditorExample extends Component {
         if (command === 'myeditor-save') {
             return 'handled';
         } else if(command == 'backspace') {
-            const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState)
+            const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
-            if(blockType == 'dialogue' && prevType =='dialogue'){
+            const last = editorState.getCurrentContent().getBlockMap().last().getKey();
+            const first = editorState.getCurrentContent().getBlockMap().first().getType();
+
+            if(blockType == 'dialogue' && prevType =='dialogue' || first === 'character'){
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
             }
+
         }
         return 'not-handled';
     };
@@ -384,8 +383,6 @@ export default class MentionsEditorExample extends Component {
         const key = selectionState.getStartKey();
         const blockMap = contentState.getBlockMap();
         const block = blockMap.get(key);
-        let newText = '';
-        const text = block.getText();
         const newBlock = block.merge({
             text: '',
             type: newType,
@@ -434,8 +431,8 @@ export default class MentionsEditorExample extends Component {
             focusKey: last.getKey(),
             focusOffset: 0,
             anchorOffset: 0,
-            isBackward: true,
-            hasFocus: true
+            isBackward: false,
+            hasFocus: false
         });
         this.onChange(EditorState.forceSelection( editorState, selState))
     };
@@ -505,6 +502,7 @@ export default class MentionsEditorExample extends Component {
                         keyBindingFn={myKeyBindingFn}
                         onPressEnter={this.onPressEnter}
                         getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
+                        stackMode={this.stackMode}
                     />
                 </div>
             </div>
