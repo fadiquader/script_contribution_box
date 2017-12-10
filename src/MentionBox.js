@@ -65,7 +65,7 @@ const blockRenderMap = Map({
 });
 const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
-const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
+// const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 
 export function filterPeople(query) {
     return PEOPLE.filter(person => {
@@ -135,10 +135,11 @@ export default class MentionsEditorExample extends Component {
     }
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
+        const contentState = editorState.getCurrentContent();
         const filteredPeople = filterPeople(text.replace(/^@/, ''));
         const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
         if(isNaN(index)) return;
-        const insertState = this.getInsertState(index, /^@/)
+        const insertState = this.getInsertState(index, /^@/);
         const currentSelectionState = editorState.getSelection();
         const mentionTextSelection = currentSelectionState.merge({
             anchorOffset: insertState.start,
@@ -146,8 +147,10 @@ export default class MentionsEditorExample extends Component {
         });
         const blockKey = mentionTextSelection.getAnchorKey();
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
+        const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
+        const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey()
         let contentStateWithEntity = Modifier.replaceText(
-            editorState.getCurrentContent(),
+            contentWithEntity,
             selection,
             filteredPeople[index],
             null,
@@ -461,6 +464,7 @@ export default class MentionsEditorExample extends Component {
             this.focusOnTheLastBlock()
         })
     };
+
     render() {
         return (
             <div onClick={this.editorFoucs}>
@@ -481,7 +485,6 @@ export default class MentionsEditorExample extends Component {
                         keyBindingFn={myKeyBindingFn}
                         onPressEnter={this.onPressEnter}
                         getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
-                        insertFragment={this.insertFragment}
                     />
                 </div>
             </div>
