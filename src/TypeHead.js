@@ -37,13 +37,15 @@ class TypeaheadEditor extends Editor {
         // Remove text that appears after the cursor..
         text = text.substring(0, range.startOffset);
 
-        // ..and before the typeahead token.
-        const index = text.lastIndexOf('@');
+        // ..and before the typeahead token
+        // const regex = /^(@|\()/;
+        // console.log(text, regex.test(text))
+        let index = text.lastIndexOf('@');
         if (index === -1) {
-            return null;
+            index = text.lastIndexOf('(');
+            if(index === -1) return null;
         }
         text = text.substring(index);
-
         return {
             text,
             start: index,
@@ -52,11 +54,9 @@ class TypeaheadEditor extends Editor {
     }
 
     getTypeaheadState(invalidate = true) {
-        if (!invalidate) {
-            return this.typeaheadState;
-        }
-
+        if (!invalidate) return this.typeaheadState;
         const typeaheadRange = this.getTypeaheadRange();
+
         if (!typeaheadRange) {
             this.typeaheadState = null;
             return null;
@@ -79,11 +79,9 @@ class TypeaheadEditor extends Editor {
 
     onChange = (editorState) => {
         this.props.onChange(editorState);
-
         // Set typeahead visibility. Wait a frame to ensure that the cursor is
         // updated.
         if (this.props.onTypeaheadChange) {
-
             window.requestAnimationFrame(() => {
                 this.props.onTypeaheadChange(this.getTypeaheadState());
             });
@@ -104,16 +102,13 @@ class TypeaheadEditor extends Editor {
 
     onArrow(e, originalHandler, nudgeAmount) {
         let typeaheadState = this.getTypeaheadState(false);
-
         if (!typeaheadState) {
             originalHandler && originalHandler(e);
             return;
         }
-
         e.preventDefault();
         typeaheadState.selectedIndex += nudgeAmount;
         this.typeaheadState = typeaheadState;
-
         this.props.onTypeaheadChange && this.props.onTypeaheadChange(typeaheadState);
     }
 

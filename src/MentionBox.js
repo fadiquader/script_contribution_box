@@ -23,7 +23,7 @@ import { Character } from './Character';
 import { Dialogue } from './Dialogue';
 import { decorator } from './strategies';
 import { normalizeSelectedIndex } from './utils'
-import { MENTION_PATTERN, MENTION_REGEX } from './constants';
+import { MENTION_PATTERN, MENTION_PATTERN2 } from './constants';
 
 const {
     Editor,
@@ -68,6 +68,7 @@ const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 // const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 
 export function filterPeople(query) {
+    // console.log('query ', query)
     return PEOPLE.filter(person => {
         return person.toLowerCase().startsWith(query.toLowerCase());
     });
@@ -99,8 +100,10 @@ export default class MentionsEditorExample extends Component {
             typeaheadState: null
         };
     }
-    onChange = (editorState) => {
-        this.setState({ editorState })
+    onChange = (editorState, foucusOnLastBlock=false) => {
+        this.setState({ editorState }, () => {
+            foucusOnLastBlock && this.focusOnTheLastBlock()
+        })
         // const currentSelectionState = editorState.getSelection();
         // const end = currentSelectionState.getAnchorOffset();
         // const anchorKey = currentSelectionState.getAnchorKey();
@@ -136,10 +139,10 @@ export default class MentionsEditorExample extends Component {
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
         const contentState = editorState.getCurrentContent();
-        const filteredPeople = filterPeople(text.replace(/^@/, ''));
+        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''));
         const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
         if(isNaN(index)) return;
-        const insertState = this.getInsertState(index, /^@/);
+        const insertState = this.getInsertState(index, /^(@|\()/);
         const currentSelectionState = editorState.getSelection();
         const mentionTextSelection = currentSelectionState.merge({
             anchorOffset: insertState.start,
@@ -149,10 +152,12 @@ export default class MentionsEditorExample extends Component {
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
         const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
         const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey()
+        console.log('text ', text)
+        const menText = text == '@' ? filteredPeople[index]: `(${filteredPeople[index]})`
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
             selection,
-            filteredPeople[index],
+            menText,
             null,
             MENTION_ENTITY_KEY
         );
@@ -197,9 +202,10 @@ export default class MentionsEditorExample extends Component {
         text = text.substring(0, range.startOffset);
 
         // ..and before the typeahead token.
-        const index = text.lastIndexOf('@');
+        let index = text.lastIndexOf('@');
         if (index === -1) {
-            return null;
+            index = text.lastIndexOf('(');
+            if(index === -1) return null;
         }
         text = text.substring(index);
         return {
@@ -228,9 +234,17 @@ export default class MentionsEditorExample extends Component {
 
     onTab = (event) => {
         event.preventDefault();
+        const { editorState } = this.state;
         // const editorState = changeDepth(this.state.editorState, event.shiftKey ? -1 : 1, 4);
-        const newEditorState = this.insertCharacter('character');
-        this.onChange(newEditorState);
+        let newEditorState = this.insertCharacter('character');
+        const { currentBlock } = this.getCurrentAndBeforBlocks(editorState);
+        const currentType = currentBlock.getType();
+        console.log()
+        if(currentType == 'character') {
+            newEditorState = this.addEmptyBlock(editorState, 'character')
+        }
+        this.onChange(newEditorState, currentType == 'character');
+
     };
     getEditorState = () => this.state.editorState;
 
@@ -336,21 +350,27 @@ export default class MentionsEditorExample extends Component {
         const prevType = prevBlock && prevBlock.getType();
         const entityKey = currentBlock.getEntityAt(0)
         const entity = entityKey && Entity.get(entityKey).getType();
-        console.log(blockType, prevType)
-        if(prevType == 'character' && blockType == 'character') {
+        console.log(prevType, blockType)
+        if(prevType == 'character' && blockType == 'dialogue') {
             return false;
         }
         if(blockType == 'character') {
-            if(entity == 'MENTION') {
-                return true;
-            } else if(str != '@' && blockText.length == 0) {
-                return true
-            } else if(MENTION_PATTERN.test(MENTION_REGEX)) {
+            // if(entity == 'MENTION') return true;
+            if((str == '@' || str == '(') && blockText.length == 0) {
+                return false;
+            } else if(blockText.length > 0 &&MENTION_PATTERN.test(blockText.trim())) {
+                console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
+                return false;
+            }
+            else if(entity == 'MENTION' && str == '(') {
                 return false
             }
+            else if(entity == 'MENTION' && MENTION_PATTERN2.test(blockText.trim())) {
+                return false
+            } else {
+                return true
+            }
         }
-
-
         // if(prevType == 'character' && blockType !== 'dialogue') {
         //     this.resetBlockType(editorState, 'dialogue');
         //     return true;
@@ -387,10 +407,10 @@ export default class MentionsEditorExample extends Component {
         // this.resetBlockType(editorState, 'dialogue');
     };
 
-    addEmptyBlock = (editorState) => {
+    addEmptyBlock = (editorState, type) => {
         const newBlock = new ContentBlock({
             key: genKey(),
-            type: 'dialogue',
+            type: type,
             text: '',
             characterList: List()
         });
@@ -477,10 +497,10 @@ export default class MentionsEditorExample extends Component {
                         onChange={this.onChange}
                         onTypeaheadChange={this.onTypeaheadChange}
                         handleTypeaheadReturn={this.handleTypeaheadReturn}
+                        handleBeforeInput={this.handleBeforeInput}
                         blockStyleFn={this.blockStyleFn}
                         blockRendererFn={this.blockRendererFn}
                         blockRenderMap={extendedBlockRenderMap}
-                        handleBeforeInput={this.handleBeforeInput}
                         handleKeyCommand={this.handleKeyCommand}
                         keyBindingFn={myKeyBindingFn}
                         onPressEnter={this.onPressEnter}
