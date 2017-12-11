@@ -2,7 +2,7 @@ import React from 'react';
 import { Editor, EditorState } from 'draft-js';
 import { handleNewLine } from 'draftjs-utils';
 import { normalizeSelectedIndex } from './utils';
-import { MENTION_PATTERN, MENTION_REGEX } from './constants';
+import { MENTION_REGEX, MENTION_REGEX2 } from './constants';
 
 class TypeaheadEditor extends Editor {
     constructor(props) {
@@ -62,8 +62,7 @@ class TypeaheadEditor extends Editor {
             this.typeaheadState = null;
             return null;
         }
-        // const testRe = typeaheadRange.text.match(MENTION_REGEX)
-        const testRe = MENTION_REGEX.test(typeaheadRange.text)
+        const testRe = MENTION_REGEX.test(typeaheadRange.text) || MENTION_REGEX2.test(typeaheadRange.text);
         // console.log(typeaheadRange.text, testRe)
         if(!testRe) {
             this.typeaheadState = null;
@@ -130,6 +129,7 @@ class TypeaheadEditor extends Editor {
     handleReturn = (e) => {
         if (this.typeaheadState) {
             if (this.props.handleTypeaheadReturn) {
+                console.log(this.typeaheadState)
                 const contentState = this.props.editorState.getCurrentContent();
                 const selection = contentState.getSelectionAfter();
                 const entitySelection = selection.set(

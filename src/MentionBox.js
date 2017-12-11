@@ -22,7 +22,7 @@ import { Action } from './Action';
 import { Character } from './Character';
 import { Dialogue } from './Dialogue';
 import { decorator } from './strategies';
-import { normalizeSelectedIndex } from './utils'
+import { normalizeSelectedIndex, filterPeople } from './utils'
 import { MENTION_PATTERN, MENTION_PATTERN2 } from './constants';
 
 const {
@@ -40,34 +40,6 @@ const {
     SelectionState
 } = Draft;
 
-const PEOPLE = [
-    'Justin Vaillancourt',
-    'Ellie Pritts',
-    'Maxime Santerre',
-    'Melody Ma',
-    'Kris Hartvigsen'
-];
-
-const STATUS = [
-    'V.O',
-    'V.C',
-    'V.S'
-];
-
-const data = {
-    '@': [
-        'Justin Vaillancourt',
-        'Ellie Pritts',
-        'Maxime Santerre',
-        'Melody Ma',
-        'Kris Hartvigsen'
-    ],
-    '(': [
-        'V.O',
-        'V.C',
-        'V.S'
-    ]
-}
 const {hasCommandModifier} = KeyBindingUtil;
 
 const blockRenderMap = Map({
@@ -83,15 +55,6 @@ const blockRenderMap = Map({
 const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 // const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
-
-export function filterPeople(query, t) {
-    // console.log('query ', query)
-
-    return data[t].filter(person => {
-        return person.toLowerCase().startsWith(query.toLowerCase());
-    });
-}
-
 const myKeyBindingFn = (e) => {
     if (e.keyCode === 83 /* `S` key */ && hasCommandModifier(e)) {
         return 'myeditor-save';
@@ -150,6 +113,7 @@ export default class MentionsEditorExample extends Component {
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
         const firstChar = text[0];
+        // console.log(text, selectedIndex)
         const contentState = editorState.getCurrentContent();
         const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''), firstChar);
         const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
@@ -191,7 +155,7 @@ export default class MentionsEditorExample extends Component {
 
     renderTypeahead() {
         const { typeaheadState } = this.state;
-        console.log(typeaheadState)
+        // console.log(typeaheadState)
         if (typeaheadState === null) {
             return null;
         }

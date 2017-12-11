@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
-import { normalizeSelectedIndex } from './utils';
-import { filterPeople } from './MentionBox'
+import { normalizeSelectedIndex, filterPeople } from './utils';
 
 
 function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
