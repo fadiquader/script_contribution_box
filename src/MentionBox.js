@@ -301,6 +301,7 @@ export default class MentionsEditorExample extends Component {
         if (command === 'myeditor-save') {
             return 'handled';
         } else if(command == 'backspace') {
+            this.stackMode = false;
             const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
@@ -505,6 +506,7 @@ export default class MentionsEditorExample extends Component {
                         onPressEnter={this.onPressEnter}
                         getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
                         stackMode={this.stackMode}
+                        placeholder="Enter script contribution here"
                     />
                 </div>
             </div>

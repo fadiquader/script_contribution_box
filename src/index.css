@@ -55,3 +55,8 @@ body {
   background-color: #eeeeee;
   cursor: pointer;
 }
+.DraftEditor-root [id^="placeholder-"] {
+  font-family: Courier;
+  font-weight: bold;
+  font-size: 13px;
+}
