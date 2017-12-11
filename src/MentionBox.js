@@ -342,6 +342,7 @@ export default class MentionsEditorExample extends Component {
     handleBeforeInput = (str) => {
         // console.log('str ', str)
         const { editorState } = this.state;
+        this.stackMode = false;
         const selection = editorState.getSelection();
         const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
         const blockType = currentBlock.getType();
