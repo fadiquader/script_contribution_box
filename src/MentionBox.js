@@ -164,7 +164,10 @@ export default class MentionsEditorExample extends Component {
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
         const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
         const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey();
-        console.log('text ', text)
+        // console.log('text ', text)
+        // if(!MENTION_PATTERN.test(text)) {
+        //     return;
+        // }
         const menText = text.indexOf('@') !== -1 ? filteredPeople[index]: `(${filteredPeople[index]})`
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
@@ -187,7 +190,9 @@ export default class MentionsEditorExample extends Component {
     };
 
     renderTypeahead() {
-        if (this.state.typeaheadState === null) {
+        const { typeaheadState } = this.state;
+        console.log(typeaheadState)
+        if (typeaheadState === null) {
             return null;
         }
         return <Mentions  typeaheadState = { this.state.typeaheadState}
@@ -391,7 +396,7 @@ export default class MentionsEditorExample extends Component {
             if((str == '@' || str == '(') && blockText.length == 0) {
                 return false;
             } else if(blockText.length > 0 &&MENTION_PATTERN.test(blockText.trim())) {
-                console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
+                // console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
                 return false;
             }
             else if(entity == 'MENTION' && str == '(') {

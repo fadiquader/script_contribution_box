@@ -2,6 +2,7 @@ import React from 'react';
 import { Editor, EditorState } from 'draft-js';
 import { handleNewLine } from 'draftjs-utils';
 import { normalizeSelectedIndex } from './utils';
+import { MENTION_PATTERN, MENTION_REGEX } from './constants';
 
 class TypeaheadEditor extends Editor {
     constructor(props) {
@@ -57,11 +58,17 @@ class TypeaheadEditor extends Editor {
         if (!invalidate) return this.typeaheadState;
         const typeaheadRange = this.getTypeaheadRange();
         if(this.props.stackMode) return this.typeaheadState;
-            if (!typeaheadRange) {
+        if (!typeaheadRange) {
             this.typeaheadState = null;
             return null;
         }
-
+        // const testRe = typeaheadRange.text.match(MENTION_REGEX)
+        const testRe = MENTION_REGEX.test(typeaheadRange.text)
+        // console.log(typeaheadRange.text, testRe)
+        if(!testRe) {
+            this.typeaheadState = null;
+            return null;
+        }
         const tempRange = window.getSelection().getRangeAt(0).cloneRange();
         tempRange.setStart(tempRange.startContainer, typeaheadRange.start);
 

@@ -12,6 +12,9 @@ function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
     const firstChar = typeaheadState.text[0];
     const filteredPeople = filterPeople(typeaheadState.text.replace(/^(@|\()/, ''), firstChar);
     const normalizedIndex = normalizeSelectedIndex(typeaheadState.selectedIndex, filteredPeople.length);
+    if( filteredPeople.length === 0) {
+        return null
+    }
     return (
         <ul className={'typeahead'} style={typeaheadStyle}>
             {filteredPeople.map((person, index) => {
@@ -32,9 +35,10 @@ function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
                     </li>
                 );
             })}
+            {firstChar === '@' &&
             <li className="add-character" onMouseDown={() => onTypeheadClick(-1)}>
                 <span>Add Character</span>
-            </li>
+            </li>}
         </ul>
     );
 }
