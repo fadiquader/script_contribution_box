@@ -39,6 +39,7 @@ const {
     genKey,
     SelectionState
 } = Draft;
+
 const PEOPLE = [
     'Justin Vaillancourt',
     'Ellie Pritts',
@@ -47,6 +48,26 @@ const PEOPLE = [
     'Kris Hartvigsen'
 ];
 
+const STATUS = [
+    'V.O',
+    'V.C',
+    'V.S'
+];
+
+const data = {
+    '@': [
+        'Justin Vaillancourt',
+        'Ellie Pritts',
+        'Maxime Santerre',
+        'Melody Ma',
+        'Kris Hartvigsen'
+    ],
+    '(': [
+        'V.O',
+        'V.C',
+        'V.S'
+    ]
+}
 const {hasCommandModifier} = KeyBindingUtil;
 
 const blockRenderMap = Map({
@@ -63,9 +84,10 @@ const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 // const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 
-export function filterPeople(query) {
+export function filterPeople(query, t) {
     // console.log('query ', query)
-    return PEOPLE.filter(person => {
+
+    return data[t].filter(person => {
         return person.toLowerCase().startsWith(query.toLowerCase());
     });
 }
@@ -127,8 +149,9 @@ export default class MentionsEditorExample extends Component {
     }
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
+        const firstChar = text[0];
         const contentState = editorState.getCurrentContent();
-        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''));
+        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''), firstChar);
         const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
         if(isNaN(index)) return;
         const insertState = this.getInsertState(index, /^(@|\()/);
@@ -140,7 +163,7 @@ export default class MentionsEditorExample extends Component {
         const blockKey = mentionTextSelection.getAnchorKey();
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
         const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
-        const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey()
+        const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey();
         console.log('text ', text)
         const menText = text.indexOf('@') !== -1 ? filteredPeople[index]: `(${filteredPeople[index]})`
         let contentStateWithEntity = Modifier.replaceText(
@@ -312,13 +335,22 @@ export default class MentionsEditorExample extends Component {
             const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
-            const last = editorState.getCurrentContent().getBlockMap().last().getKey();
-            const first = editorState.getCurrentContent().getBlockMap().first().getType();
-
-            if(blockType == 'dialogue' && prevType =='dialogue' || first === 'character'){
+            const last = editorState.getCurrentContent().getBlockMap().last();
+            const first = editorState.getCurrentContent().getBlockMap().first();
+            // console.log(blockType, prevType)
+            if(first.getKey() == last.getKey() && first.getType() == 'character') {
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
             }
+            else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
+                this.resetBlockType(editorState, 'action');
+                return 'handled';
+            }
+            // if(blockType == 'dialogue' && prevType =='dialogue' || first === 'character'){
+            //     this.resetBlockType(editorState, 'action');
+            //     return 'handled';
+            // }
+            return 'not-handled'
 
         }
         return 'not-handled';

@@ -9,7 +9,8 @@ function Mentions({ typeaheadState, onMouseOver, onTypeheadClick, focus }) {
         left: typeaheadState.left,
         top: typeaheadState.top
     }
-    const filteredPeople =  filterPeople(typeaheadState.text.replace(/^(@|\()/, ''));
+    const firstChar = typeaheadState.text[0];
+    const filteredPeople = filterPeople(typeaheadState.text.replace(/^(@|\()/, ''), firstChar);
     const normalizedIndex = normalizeSelectedIndex(typeaheadState.selectedIndex, filteredPeople.length);
     return (
         <ul className={'typeahead'} style={typeaheadStyle}>
