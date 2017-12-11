@@ -142,7 +142,7 @@ export default class MentionsEditorExample extends Component {
         const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
         const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey()
         console.log('text ', text)
-        const menText = text == '@' ? filteredPeople[index]: `(${filteredPeople[index]})`
+        const menText = text.indexOf('@') !== -1 ? filteredPeople[index]: `(${filteredPeople[index]})`
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
             selection,
