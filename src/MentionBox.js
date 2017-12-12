@@ -225,8 +225,16 @@ export default class MentionsEditorExample extends Component {
         const { editorState } = this.state;
         // const editorState = changeDepth(this.state.editorState, event.shiftKey ? -1 : 1, 4);
         let newEditorState = this.insertCharacter('character');
-        const { currentBlock } = this.getCurrentAndBeforBlocks(editorState);
+        const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
         const currentType = currentBlock.getType();
+        const currentText = currentBlock.getText();
+        const blockMap = editorState.getCurrentContent().getBlockMap();
+        // const last = blockMap.last();
+        const first = blockMap.first();
+        if(first.getKey() == currentBlock.getKey()) return;
+        const isActionBlock  = currentType === 'action' || currentType === 'unstyled';
+        if(currentType === 'dialogue' && prevBlock === 'character') return;
+        if(currentText !== '' && currentType !== 'character') return;
         if(currentType == 'character') {
             newEditorState = this.addEmptyBlock(editorState, 'character')
         }
@@ -303,16 +311,21 @@ export default class MentionsEditorExample extends Component {
         } else if(command == 'backspace') {
             this.stackMode = false;
             const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
+            const blockMap = editorState.getCurrentContent().getBlockMap();
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
-            const last = editorState.getCurrentContent().getBlockMap().last();
-            const first = editorState.getCurrentContent().getBlockMap().first();
+            const last = blockMap.last();
+            const first = blockMap.first();
             // console.log(blockType, prevType)
             if(first.getKey() == last.getKey() && first.getType() == 'character') {
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
             }
+            if(blockType === 'dialogue' && prevType === 'character') {
+                return 'not-handled';
+            }
             else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
+                if(currentBlock.getText() != '') return 'not-handled';
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
             }
@@ -350,10 +363,10 @@ export default class MentionsEditorExample extends Component {
         const blockType = currentBlock.getType();
         const blockText = currentBlock.getText();
         const prevType = prevBlock && prevBlock.getType();
-        const entityKey = currentBlock.getEntityAt(0)
+        const entityKey = currentBlock.getEntityAt(0);
         const entity = entityKey && Entity.get(entityKey).getType();
-        console.log(prevType, blockType)
-        if(prevType == 'character' && blockType == 'dialogue') {
+
+        if(prevType == 'character' && blockType == 'dialogue'){
             return false;
         }
         if(blockType == 'character') {

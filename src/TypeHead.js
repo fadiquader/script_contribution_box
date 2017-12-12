@@ -37,12 +37,12 @@ class TypeaheadEditor extends Editor {
 
         // Remove text that appears after the cursor..
         text = text.substring(0, range.startOffset);
-
         // ..and before the typeahead token
         // const regex = /^(@|\()/;
-        // console.log(text, regex.test(text))
         let index = text.lastIndexOf('@');
-        if (index === -1) {
+        let prev = text.substring(index, index - 1);
+        if(index != 0 && prev !== " ") return null;
+        else if (index === -1) {
             index = text.lastIndexOf('(');
             if(index === -1) return null;
         }
@@ -173,7 +173,6 @@ class TypeaheadEditor extends Editor {
             onTypeaheadChange,
             ...other
         } = this.props;
-
         return (
             <div>
                 <Editor
