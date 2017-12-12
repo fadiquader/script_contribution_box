@@ -23,7 +23,7 @@ import { Character } from './Character';
 import { Dialogue } from './Dialogue';
 import { decorator } from './strategies';
 import { normalizeSelectedIndex, filterPeople } from './utils'
-import { MENTION_PATTERN, MENTION_PATTERN2 } from './constants';
+import { MENTION_PATTERN, MENTION_PATTERN2, MENTION_PATTERN3 } from './constants';
 
 const {
     Editor,
@@ -371,13 +371,16 @@ export default class MentionsEditorExample extends Component {
         }
         if(blockType == 'character') {
             // if(entity == 'MENTION') return true;
+            const mCh =  MENTION_PATTERN3.test(blockText);
+            // console.log(mCh);
+            if(mCh) return true;
             if((str == '@' || str == '(') && blockText.length == 0) {
                 return false;
             } else if(blockText.length > 0 &&MENTION_PATTERN.test(blockText.trim())) {
                 // console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
                 return false;
             }
-            else if(entity == 'MENTION' && str == '(') {
+            else if(entity == 'MENTION' && (str == '(' || str == ' ')) {
                 return false
             }
             else if(entity == 'MENTION' && MENTION_PATTERN2.test(blockText.trim())) {

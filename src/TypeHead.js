@@ -40,12 +40,14 @@ class TypeaheadEditor extends Editor {
         // ..and before the typeahead token
         // const regex = /^(@|\()/;
         let index = text.lastIndexOf('@');
+        if (index === -1) {
+            index = text.lastIndexOf('(');
+        }
+        if (index === -1) {
+            return null;
+        }
         let prev = text.substring(index, index - 1);
         if(index != 0 && prev !== " ") return null;
-        else if (index === -1) {
-            index = text.lastIndexOf('(');
-            if(index === -1) return null;
-        }
         text = text.substring(index);
         return {
             text,
