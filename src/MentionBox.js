@@ -321,6 +321,11 @@ export default class MentionsEditorExample extends Component {
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
             }
+            if(currentBlock.getText() == "" &&
+                blockType === 'character' && (prevType === 'dialogue' || prevType === 'action')) {
+                this.resetBlockType(editorState, prevType);
+                return 'handled';
+            }
             if(blockType === 'dialogue' && prevType === 'character') {
                 return 'not-handled';
             }

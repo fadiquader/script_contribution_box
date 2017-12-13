@@ -159,6 +159,9 @@ class TypeaheadEditor extends Editor {
             const { currentBlock, prevBlock } = getCurrentAndBeforBlocks(editorState)
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
+            if(currentBlock.getText() == "") {
+                return true;
+            }
             if((prevType == 'unstyled' || 'character' )&& blockType == 'character') {
                 // this.props.onChange(handleNewLine())
                 this.props.onPressEnter();
