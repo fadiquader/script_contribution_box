@@ -337,13 +337,18 @@ export default class MentionsEditorExample extends Component {
                 return 'handled';
             }
             if(blockType === 'dialogue' && prevType === 'character') {
-
+                if((currentBlock.getText() == "" || focusOffset == 0)&& nextBlock && nextBlock.getType() === 'action') {
+                    return 'handled'
+                }
                 return 'not-handled';
             }
             else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
                 if(currentBlock.getText() != '') return 'not-handled';
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
+            }
+            else if(currentBlock.getText() == "" && blockType == 'character' && nextBlock && nextBlock.getType() === 'action') {
+                return 'handled'
             }
             // if(blockType == 'dialogue' && prevType =='dialogue' || first === 'character'){
             //     this.resetBlockType(editorState, 'action');
