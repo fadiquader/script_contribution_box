@@ -1,5 +1,5 @@
 import React from 'react';
-import { Editor, EditorState } from 'draft-js';
+import { Editor, EditorState, Entity } from 'draft-js';
 import { handleNewLine } from 'draftjs-utils';
 import { normalizeSelectedIndex } from './utils';
 import { MENTION_REGEX, MENTION_REGEX2 } from './constants';
@@ -24,6 +24,9 @@ class TypeaheadEditor extends Editor {
     }
 
     getTypeaheadRange() {
+        const { editorState, getCurrentAndBeforBlocks } = this.props;
+        const { currentBlock } = getCurrentAndBeforBlocks(editorState)
+
         const selection = window.getSelection();
         if (selection.rangeCount === 0) {
             return null;
@@ -41,6 +44,7 @@ class TypeaheadEditor extends Editor {
         // const regex = /^(@|\()/;
         let index = text.lastIndexOf('@');
         if (index === -1) {
+            if(currentBlock.getType() != 'character') return null;
             index = text.lastIndexOf('(');
         }
         if (index === -1) {
@@ -131,13 +135,12 @@ class TypeaheadEditor extends Editor {
     handleReturn = (e) => {
         if (this.typeaheadState) {
             if (this.props.handleTypeaheadReturn) {
-                console.log(this.typeaheadState)
+                // console.log(this.typeaheadState)
                 const contentState = this.props.editorState.getCurrentContent();
                 const selection = contentState.getSelectionAfter();
                 const entitySelection = selection.set(
                     'anchorOffset', selection.getFocusOffset() - this.typeaheadState.text.length
                 );
-
                 this.props.handleTypeaheadReturn(
                     this.typeaheadState.text,
                     this.typeaheadState.selectedIndex,
@@ -159,9 +162,13 @@ class TypeaheadEditor extends Editor {
             const { currentBlock, prevBlock } = getCurrentAndBeforBlocks(editorState)
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
-            if(currentBlock.getText() == "") {
-                return true;
-            }
+            const entityKey = currentBlock.getEntityAt(0);
+            const entity = entityKey && Entity.get(entityKey).getType();
+            console.log('entity ', entity);
+
+            if( currentBlock.getText() == "" ||
+                blockType == 'character' && entity === null) return true;
+
             if((prevType == 'unstyled' || 'character' )&& blockType == 'character') {
                 // this.props.onChange(handleNewLine())
                 this.props.onPressEnter();

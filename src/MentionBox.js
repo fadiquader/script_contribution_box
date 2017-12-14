@@ -231,14 +231,18 @@ export default class MentionsEditorExample extends Component {
         const blockMap = editorState.getCurrentContent().getBlockMap();
         // const last = blockMap.last();
         const first = blockMap.first();
-        if(first.getKey() == currentBlock.getKey()) return;
         const isActionBlock  = currentType === 'action' || currentType === 'unstyled';
-        if(currentType === 'dialogue' && prevBlock === 'character') return;
-        if(currentText !== '' && currentType !== 'character') return;
-        if(currentType == 'character') {
-            newEditorState = this.addEmptyBlock(editorState, 'character')
+        if(first.getKey() == currentBlock.getKey() && currentText.trim() == '') return;
+        if(isActionBlock && currentText.trim() != '') {
+            newEditorState = this.addEmptyBlock(editorState, 'action')
         }
-        this.onChange(newEditorState, currentType == 'character');
+        if(currentType === 'dialogue' && prevBlock === 'character') return;
+        if(currentText.trim() != '') return;
+        // if(currentText !== '' && currentType !== 'character') return;
+        // if(currentType == 'character') {
+        //     newEditorState = this.addEmptyBlock(editorState, 'character')
+        // }
+        this.onChange(newEditorState, currentType == 'character' || isActionBlock && currentText.trim() != '');
 
     };
     getEditorState = () => this.state.editorState;
@@ -310,13 +314,15 @@ export default class MentionsEditorExample extends Component {
             return 'handled';
         } else if(command == 'backspace') {
             this.stackMode = false;
-            const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
+            const { currentBlock, prevBlock, nextBlock } = this.getCurrentAndBeforBlocks(editorState);
             const blockMap = editorState.getCurrentContent().getBlockMap();
             const blockType = currentBlock.getType();
             const prevType = prevBlock && prevBlock.getType();
             const last = blockMap.last();
             const first = blockMap.first();
-            // console.log(blockType, prevType)
+            const selection = editorState.getSelection();
+            const focusOffset = selection.getFocusOffset();
+            // console.log(selection.getFocusOffset())
             if(first.getKey() == last.getKey() && first.getType() == 'character') {
                 this.resetBlockType(editorState, 'action');
                 return 'handled';
@@ -326,7 +332,12 @@ export default class MentionsEditorExample extends Component {
                 this.resetBlockType(editorState, prevType);
                 return 'handled';
             }
+            if((blockType == 'dialogue' || blockType == 'character' && nextBlock && nextBlock.getType() === 'dialogue')
+                && currentBlock.getText().trim() != "" && focusOffset == 0) {
+                return 'handled';
+            }
             if(blockType === 'dialogue' && prevType === 'character') {
+
                 return 'not-handled';
             }
             else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
@@ -351,12 +362,14 @@ export default class MentionsEditorExample extends Component {
         /* Get the current block */
         const contentState = editorState.getCurrentContent();
         const currentBlock = contentState.getBlockForKey(startKey);
-        const blockType = currentBlock.getType();
-        const blockLength = currentBlock.getLength();
+        // const blockType = currentBlock.getType();
+        // const blockLength = currentBlock.getLength();
         const prevBlock = contentState.getBlockBefore(startKey);
+        const nextBlock = contentState.getBlockAfter(startKey);
         return {
             currentBlock,
-            prevBlock
+            prevBlock,
+            nextBlock
         }
     }
     handleBeforeInput = (str) => {
@@ -375,9 +388,9 @@ export default class MentionsEditorExample extends Component {
             return false;
         }
         if(blockType == 'character') {
-            // if(entity == 'MENTION') return true;
             const mCh =  MENTION_PATTERN3.test(blockText);
             // console.log(mCh);
+            if((str == '@' || str == '(')&& blockText.indexOf("@") !== -1) return true;
             if(mCh) return true;
             if((str == '@' || str == '(') && blockText.length == 0) {
                 return false;

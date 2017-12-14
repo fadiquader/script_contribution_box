@@ -40,6 +40,9 @@ body {
   color: #63a29c;
   /*cursor: pointer;*/
 }
+.action {
+  padding: 8px 0;
+}
 .character {
   padding-left: 150px;
 }
