@@ -17,13 +17,19 @@ import {
 } from 'draftjs-utils';
 import {Map, List } from 'immutable';
 import Mentions from './Mentions';
-import TypeaheadEditor from './TypeHead';
+// import TypeaheadEditor from './TypeHead';
 import { Action } from './Action';
 import { Character } from './Character';
 import { Dialogue } from './Dialogue';
 import { decorator } from './strategies';
 import { normalizeSelectedIndex, filterPeople } from './utils'
-import { MENTION_PATTERN, MENTION_PATTERN2, MENTION_PATTERN3 } from './constants';
+import {
+    MENTION_REGEX,
+    MENTION_PATTERN,
+    MENTION_PATTERN2,
+    MENTION_REGEX2 ,
+    MENTION_PATTERN3
+} from './constants';
 
 const {
     Editor,
@@ -77,7 +83,10 @@ export default class MentionsEditorExample extends Component {
     onChange = (editorState, foucusOnLastBlock=false) => {
         this.setState({ editorState }, () => {
             foucusOnLastBlock && this.focusOnTheLastBlock()
-        })
+        });
+        window.requestAnimationFrame(() => {
+            this.onTypeaheadChange(this.getTypeaheadState());
+        });
         // const currentSelectionState = editorState.getSelection();
         // const end = currentSelectionState.getAnchorOffset();
         // const anchorKey = currentSelectionState.getAnchorKey();
@@ -172,30 +181,30 @@ export default class MentionsEditorExample extends Component {
         this.setState({ typeaheadState: newTypeheadState })
     };
 
-    getTypeaheadRange() {
-        const selection = window.getSelection();
-        if (selection.rangeCount === 0) {
-            return null;
-        }
-        const range = selection.getRangeAt(0);
-        let text = range.startContainer.textContent;
-
-        // Remove text that appears after the cursor..
-        text = text.substring(0, range.startOffset);
-
-        // ..and before the typeahead token.
-        let index = text.lastIndexOf('@');
-        if (index === -1) {
-            index = text.lastIndexOf('(');
-            if(index === -1) return null;
-        }
-        text = text.substring(index);
-        return {
-            text,
-            start: index,
-            end: range.startOffset
-        };
-    }
+    // getTypeaheadRange() {
+    //     const selection = window.getSelection();
+    //     if (selection.rangeCount === 0) {
+    //         return null;
+    //     }
+    //     const range = selection.getRangeAt(0);
+    //     let text = range.startContainer.textContent;
+    //
+    //     // Remove text that appears after the cursor..
+    //     text = text.substring(0, range.startOffset);
+    //
+    //     // ..and before the typeahead token.
+    //     let index = text.lastIndexOf('@');
+    //     if (index === -1) {
+    //         index = text.lastIndexOf('(');
+    //         if(index === -1) return null;
+    //     }
+    //     text = text.substring(index);
+    //     return {
+    //         text,
+    //         start: index,
+    //         end: range.startOffset
+    //     };
+    // }
 
     onTypeheadClick = (selectedIndex) => {
         console.log(selectedIndex)
@@ -216,7 +225,7 @@ export default class MentionsEditorExample extends Component {
     editorFoucs = () => {
         if(this.refs.editor){
             this.refs.editor.focus();
-            this.refs.editor.refs.draftEditor.focus()
+            // this.refs.editor.refs.draftEditor.focus()
         }
     };
 
@@ -524,27 +533,186 @@ export default class MentionsEditorExample extends Component {
         })
     };
 
+    // type head
+    hasEntityAtSelection() {
+        const { editorState } = this.state;
+
+        const selection = editorState.getSelection();
+        if (!selection.getHasFocus()) {
+            return false;
+        }
+
+        const contentState = editorState.getCurrentContent();
+        const block = contentState.getBlockForKey(selection.getStartKey());
+        return !!block.getEntityAt(selection.getStartOffset() - 1);
+    }
+
+    getTypeaheadRange() {
+        const { editorState } = this.state;
+        const { currentBlock } = this.getCurrentAndBeforBlocks(editorState);
+
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) {
+            return null;
+        }
+        if (this.hasEntityAtSelection()) {
+            return null;
+        }
+
+        const range = selection.getRangeAt(0);
+        let text = range.startContainer.textContent;
+
+        // Remove text that appears after the cursor..
+        text = text.substring(0, range.startOffset);
+        // ..and before the typeahead token
+        // const regex = /^(@|\()/;
+        let index = text.lastIndexOf('@');
+        if (index === -1) {
+            if(currentBlock.getType() != 'character') return null;
+            index = text.lastIndexOf('(');
+        }
+        if (index === -1) {
+            return null;
+        }
+        let prev = text.substring(index, index - 1);
+        if(index != 0 && prev !== " ") return null;
+        text = text.substring(index);
+        return {
+            text,
+            start: index,
+            end: range.startOffset
+        };
+    }
+
+    getTypeaheadState(invalidate = true) {
+        if (!invalidate) return this.typeaheadState;
+        const typeaheadRange = this.getTypeaheadRange();
+        if(this.props.stackMode) return this.typeaheadState;
+        if (!typeaheadRange) {
+            this.typeaheadState = null;
+            return null;
+        }
+        const testRe = MENTION_REGEX.test(typeaheadRange.text) || MENTION_REGEX2.test(typeaheadRange.text);
+        // console.log(typeaheadRange.text, testRe)
+        if(!testRe) {
+            this.typeaheadState = null;
+            return null;
+        }
+        const tempRange = window.getSelection().getRangeAt(0).cloneRange();
+        tempRange.setStart(tempRange.startContainer, typeaheadRange.start);
+
+        const rangeRect = tempRange.getBoundingClientRect();
+        let [left, top] = [rangeRect.left, rangeRect.bottom];
+
+        this.typeaheadState = {
+            left,
+            top,
+            text: typeaheadRange.text,
+            selectedIndex: 0
+        };
+        return this.typeaheadState;
+    }
+
+    onEscape = (e) => {
+        if (!this.getTypeaheadState(false)) {
+            this.onEscape && this.onEscape(e);
+            return;
+        }
+
+        e.preventDefault();
+        this.typeaheadState = null;
+        this.onTypeaheadChange && this.onTypeaheadChange(null);
+    };
+
+    onArrow(e, originalHandler, nudgeAmount) {
+        let typeaheadState = this.getTypeaheadState(false);
+        if (!typeaheadState) {
+            originalHandler && originalHandler(e);
+            return;
+        }
+        e.preventDefault();
+        typeaheadState.selectedIndex += nudgeAmount;
+        this.typeaheadState = typeaheadState;
+        this.props.onTypeaheadChange && this.props.onTypeaheadChange(typeaheadState);
+    }
+
+    onUpArrow = (e) => {
+        this.onArrow(e, this.onUpArrow, -1);
+    };
+
+    onDownArrow = (e) => {
+        this.onArrow(e, this.onDownArrow, 1);
+    }
+
+    handleReturn = (e) => {
+        const { typeaheadState, editorState } = this.state
+        if (this.typeaheadState) {
+            if (this.handleTypeaheadReturn) {
+                // console.log(this.typeaheadState)
+                const contentState = editorState.getCurrentContent();
+                const selection = contentState.getSelectionAfter();
+                const entitySelection = selection.set(
+                    'anchorOffset', selection.getFocusOffset() - this.typeaheadState.text.length
+                );
+                this.handleTypeaheadReturn(
+                    this.typeaheadState.text,
+                    this.typeaheadState.selectedIndex,
+                    entitySelection
+                );
+
+                this.typeaheadState = null;
+                this.onTypeaheadChange && this.onTypeaheadChange(null);
+            } else {
+                console.error(
+                    "Warning: A typeahead is showing and return was pressed but `handleTypeaheadReturn` " +
+                    "isn't implemented."
+                );
+            }
+            return true;
+        }
+        if(this.onPressEnter) {
+            const { editorState } = this.state;
+            const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState)
+            const blockType = currentBlock.getType();
+            const prevType = prevBlock && prevBlock.getType();
+            const entityKey = currentBlock.getEntityAt(0);
+            const entity = entityKey && Entity.get(entityKey).getType();
+            // console.log('entity ', entity);
+            if( currentBlock.getText() == "" ||
+                blockType == 'character' && entity === null) return true;
+
+            if((prevType == 'unstyled' || 'character' )&& blockType == 'character') {
+                // this.props.onChange(handleNewLine())
+                this.onPressEnter();
+                return true;
+            }
+        }
+        return false;
+    };
     render() {
         return (
             <div onClick={this.editorFoucs}>
                 {this.renderTypeahead()}
                 <div className={'editor'}>
-                    <TypeaheadEditor
+                    <Editor
                         ref="editor"
                         onTab={this.onTab}
                         editorState={this.state.editorState}
                         onChange={this.onChange}
-                        onTypeaheadChange={this.onTypeaheadChange}
-                        handleTypeaheadReturn={this.handleTypeaheadReturn}
+                        // onTypeaheadChange={this.onTypeaheadChange}
+                        onEscape={this.onEscape}
+                        onUpArrow={this.onUpArrow}
+                        onDownArrow={this.onDownArrow}
+                        handleReturn={this.handleReturn}
                         handleBeforeInput={this.handleBeforeInput}
                         blockStyleFn={this.blockStyleFn}
                         blockRendererFn={this.blockRendererFn}
                         blockRenderMap={extendedBlockRenderMap}
                         handleKeyCommand={this.handleKeyCommand}
                         keyBindingFn={myKeyBindingFn}
-                        onPressEnter={this.onPressEnter}
-                        getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
-                        stackMode={this.stackMode}
+                        // onPressEnter={this.onPressEnter}
+                        // getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
+                        // stackMode={this.stackMode}
                         placeholder="Enter script contribution here"
                     />
                 </div>
