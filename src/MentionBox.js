@@ -17,7 +17,6 @@ import {
 } from 'draftjs-utils';
 import {Map, List } from 'immutable';
 import Mentions from './Mentions';
-// import TypeaheadEditor from './TypeHead';
 import { Action } from './Action';
 import { Character } from './Character';
 import { Dialogue } from './Dialogue';
@@ -209,7 +208,7 @@ export default class MentionsEditorExample extends Component {
     onTypeheadClick = (selectedIndex) => {
         console.log(selectedIndex)
         if(selectedIndex === -1) {
-            this.stackMode = true
+            this.stackMode = true;
             return ;
         }
         this.stackMode = false;
@@ -587,7 +586,7 @@ export default class MentionsEditorExample extends Component {
     getTypeaheadState(invalidate = true) {
         if (!invalidate) return this.typeaheadState;
         const typeaheadRange = this.getTypeaheadRange();
-        if(this.props.stackMode) return this.typeaheadState;
+        if(this.stackMode) return this.typeaheadState;
         if (!typeaheadRange) {
             this.typeaheadState = null;
             return null;
@@ -645,7 +644,7 @@ export default class MentionsEditorExample extends Component {
     }
 
     handleReturn = (e) => {
-        const { typeaheadState, editorState } = this.state
+        const { typeaheadState, editorState } = this.state;
         if (this.typeaheadState) {
             if (this.handleTypeaheadReturn) {
                 // console.log(this.typeaheadState)
@@ -659,7 +658,6 @@ export default class MentionsEditorExample extends Component {
                     this.typeaheadState.selectedIndex,
                     entitySelection
                 );
-
                 this.typeaheadState = null;
                 this.onTypeaheadChange && this.onTypeaheadChange(null);
             } else {
