@@ -44,10 +44,10 @@ body {
   padding: 8px 0;
 }
 .character {
-  padding-left: 150px;
+  padding: 0 150px;
 }
 .dialogue {
-  padding-left: 70px;
+  padding: 0 70px;
 }
 .display-none {
   display: none;

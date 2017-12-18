@@ -1,11 +1,6 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
-
-export class Dialogue extends Component {
-    constructor(props) {
-        super(props);
-    }
-
+export default class Dialogue extends PureComponent {
     render() {
         return (
             <div className="dialogue">

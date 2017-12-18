@@ -16,10 +16,12 @@ import {
     getSelectionEntity
 } from 'draftjs-utils';
 import {Map, List } from 'immutable';
+// import {stateToHTML} from 'draft-js-export-html';
+
 import Mentions from './Mentions';
-import { Action } from './Action';
-import { Character } from './Character';
-import { Dialogue } from './Dialogue';
+import Action from './Action';
+import Character  from './Character';
+import Dialogue  from './Dialogue';
 import { decorator } from './strategies';
 import { normalizeSelectedIndex, filterPeople } from './utils'
 import {
@@ -45,18 +47,28 @@ const {
     SelectionState
 } = Draft;
 
+
 const {hasCommandModifier} = KeyBindingUtil;
 
 const blockRenderMap = Map({
     // 'character': {
     //     element: 'div',
-    //     wrapper: Character
+    //     wrapper: <Character />
     // },
     // 'dialogue': {
     //     element: 'div',
-    //     wrapper: Dialogue
+    //     wrapper: <Dialogue />
+    // },
+    // 'unstyled': {
+    //     element: 'div',
+    //     wrapper: <Action />
+    // },
+    // 'action': {
+    //     element: 'div',
+    //     wrapper: <Action />
     // }
 });
+
 const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 // const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
@@ -452,6 +464,8 @@ export default class MentionsEditorExample extends Component {
         const { editorState } = this.state;
         this.insertFragment('after', editorState, 'dialogue');
         // this.resetBlockType(editorState, 'dialogue');
+        const newState = this.addEmptyBlock(editorState,  'dialogue');
+        this.onChange(newState, true)
     };
 
     addEmptyBlock = (editorState, type) => {
@@ -632,15 +646,15 @@ export default class MentionsEditorExample extends Component {
         e.preventDefault();
         typeaheadState.selectedIndex += nudgeAmount;
         this.typeaheadState = typeaheadState;
-        this.props.onTypeaheadChange && this.props.onTypeaheadChange(typeaheadState);
+        this.onTypeaheadChange && this.onTypeaheadChange(typeaheadState);
     }
 
     onUpArrow = (e) => {
-        this.onArrow(e, this.onUpArrow, -1);
+        this.onArrow(e, this.props.onUpArrow, -1);
     };
 
     onDownArrow = (e) => {
-        this.onArrow(e, this.onDownArrow, 1);
+        this.onArrow(e, this.props.onDownArrow, 1);
     }
 
     handleReturn = (e) => {
@@ -687,6 +701,25 @@ export default class MentionsEditorExample extends Component {
         }
         return false;
     };
+    exportToJSON = () => {
+        const contentState = this.state.editorState.getCurrentContent();
+        const rawJson = Draft.convertToRaw(contentState);
+        const jsonStr = JSON.stringify(rawJson, null, 1);
+        const plainText = contentState.getPlainText();
+
+        const html = `
+        <div class="courier action">sdfsdfdsf <span class="mention">fadi</span></div>
+        <div class="courier character"><span class="mention">qua</span> <span class="mention">(v.o)</span></div>        
+        <div class="courier dialogue">gggggggg <span class="mention">qua</span></div>
+        `;
+        this.createWithHTML(html)
+    }
+    createWithHTML = (html) => {
+        const contentBlocks = Draft.convertFromHTML(html);
+        const contentState = Draft.ContentState.createFromBlockArray(contentBlocks);
+        const newEditorState = Draft.EditorState.createWithContent(contentState);
+        this.setState({ editorState: newEditorState });
+    }
     render() {
         return (
             <div onClick={this.editorFoucs}>
@@ -714,6 +747,7 @@ export default class MentionsEditorExample extends Component {
                         placeholder="Enter script contribution here"
                     />
                 </div>
+                <button onClick={this.exportToJSON}>export to json</button>
             </div>
         );
     }

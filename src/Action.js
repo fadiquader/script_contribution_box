@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
 
-export class Action extends Component {
+export default class Action extends PureComponent {
     constructor(props) {
         super(props);
     }

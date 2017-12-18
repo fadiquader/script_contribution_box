@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 
-export class Character extends Component {
+export default class Character extends Component {
     constructor(props) {
         super(props);
     }
