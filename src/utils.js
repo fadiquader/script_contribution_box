@@ -8,24 +8,16 @@ export function normalizeSelectedIndex(selectedIndex, max) {
 }
 
 
-const data = {
-    '@': [
-        'Justin Vaillancourt',
-        'Ellie Pritts',
-        'Maxime Santerre',
-        'Melody Ma',
-        'Kris Hartvigsen'
-    ],
-    '(': [
-        'V.O',
-        'V.C',
-        'V.S'
-    ]
-}
-export function filterPeople(query, t) {
-    // console.log('query ', query)
-
+// const data = {
+//     '@': [],
+//     '(': [
+//         { name: 'V.O' },
+//         { name: 'O.C' },
+//         { name: 'O.S' }
+//     ]
+// }
+export function filterPeople(query, t, data) {
     return data[t].filter(person => {
-        return person.toLowerCase().startsWith(query.toLowerCase());
+        return person.name.toLowerCase().startsWith(query.toLowerCase());
     });
 }

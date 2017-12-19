@@ -1,23 +1,6 @@
 import React, { Component } from 'react';
 import Draft from 'draft-js';
-import {
-    changeDepth,
-    handleNewLine,
-    getCustomStyleMap,
-    extractInlineStyle,
-    getSelectedBlocksType,
-    getSelectedBlock,
-    removeSelectedBlocksStyle,
-    insertNewUnstyledBlock,
-    addLineBreakRemovingSelection,
-    toggleCustomInlineStyle,
-    getBlockBeforeSelectedBlock,
-    getAllBlocks,
-    getSelectionEntity
-} from 'draftjs-utils';
 import {Map, List } from 'immutable';
-// import {stateToHTML} from 'draft-js-export-html';
-
 import Mentions from './Mentions';
 import Action from './Action';
 import Character  from './Character';
@@ -31,18 +14,16 @@ import {
     MENTION_REGEX2 ,
     MENTION_PATTERN3
 } from './constants';
-
+import './index.css';
+import 'draft-js/dist/Draft.css';
 const {
     Editor,
     EditorState, ContentState,
     ContentBlock,
     Entity, Modifier,
-    AtomicBlockUtils,
     getDefaultKeyBinding,
     KeyBindingUtil,
-    CompositeDecorator,
     DefaultDraftBlockRenderMap,
-    RichUtils,
     genKey,
     SelectionState
 } = Draft;
@@ -82,7 +63,7 @@ const myKeyBindingFn = (e) => {
     return getDefaultKeyBinding(e);
 };
 
-export default class MentionsEditorExample extends Component {
+class ScriptEditor extends Component {
     constructor() {
         super();
         this.state = {
@@ -90,6 +71,25 @@ export default class MentionsEditorExample extends Component {
             typeaheadState: null
         };
         this.stackMode = false;
+        this.inFocus = false;
+        this.data = {
+            '@': [],
+            '(': [
+                { name: 'V.O' },
+                { name: 'O.C' },
+                { name: 'O.S' }
+            ]
+        }
+    }
+    componentDidMount() {
+        const { characters } = this.props;
+        this.data['@'] = characters;
+    }
+    componentWillReceiveProps(next) {
+        const { characters } = this.props;
+        if(next.characters.length !== characters.length){
+            this.data['@'] = next.characters;
+        }
     }
     onChange = (editorState, foucusOnLastBlock=false) => {
         this.setState({ editorState }, () => {
@@ -135,7 +135,7 @@ export default class MentionsEditorExample extends Component {
         const firstChar = text[0];
         // console.log(text, selectedIndex)
         const contentState = editorState.getCurrentContent();
-        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''), firstChar);
+        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''), firstChar, this.data);
         const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
         if(isNaN(index)) return;
         const insertState = this.getInsertState(index, /^(@|\()/);
@@ -152,7 +152,7 @@ export default class MentionsEditorExample extends Component {
         // if(!MENTION_PATTERN.test(text)) {
         //     return;
         // }
-        const menText = text.indexOf('@') !== -1 ? filteredPeople[index]: `(${filteredPeople[index]})`
+        const menText = text.indexOf('@') !== -1 ? filteredPeople[index].name: `(${filteredPeople[index].name})`
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
             selection,
@@ -183,6 +183,8 @@ export default class MentionsEditorExample extends Component {
                           onMouseOver={this.onMentionMouseOver}
                           onTypeheadClick={this.onTypeheadClick}
                           focus={this.editorFoucs}
+                          data={this.data}
+                          Component={this.props.characterComponent}
         />;
     }
 
@@ -218,9 +220,10 @@ export default class MentionsEditorExample extends Component {
     // }
 
     onTypeheadClick = (selectedIndex) => {
-        console.log(selectedIndex)
+        // console.log(selectedIndex)
         if(selectedIndex === -1) {
             this.stackMode = true;
+            this.props.onAddCharacter('')
             return ;
         }
         this.stackMode = false;
@@ -234,10 +237,7 @@ export default class MentionsEditorExample extends Component {
     };
 
     editorFoucs = () => {
-        if(this.refs.editor){
-            this.refs.editor.focus();
-            // this.refs.editor.refs.draftEditor.focus()
-        }
+        if(this.refs.editor) this.refs.editor.focus();
     };
 
     onTab = (event) => {
@@ -289,16 +289,18 @@ export default class MentionsEditorExample extends Component {
                         onChange: this.onChange
                     }
                 };
+            case 'action':
+                return {
+                    component: Action,
+                    editable: true,
+                    props: {
+                        getEditorState: this.getEditorState,
+                        onChange: this.onChange
+                    }
+                };
             default:
                 return null
-                // return {
-                //     component: Action,
-                //     editable: true,
-                //     props: {
-                //         getEditorState: this.getEditorState,
-                //         onChange: this.onChange
-                //     }
-                // };
+
         }
     };
 
@@ -462,8 +464,7 @@ export default class MentionsEditorExample extends Component {
 
     onPressEnter = () => {
         const { editorState } = this.state;
-        this.insertFragment('after', editorState, 'dialogue');
-        // this.resetBlockType(editorState, 'dialogue');
+        // this.insertFragment('after', editorState, 'dialogue');
         const newState = this.addEmptyBlock(editorState,  'dialogue');
         this.onChange(newState, true)
     };
@@ -744,7 +745,9 @@ export default class MentionsEditorExample extends Component {
                         // onPressEnter={this.onPressEnter}
                         // getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
                         // stackMode={this.stackMode}
-                        placeholder="Enter script contribution here"
+                        placeholder={`${!this.inFocus ? 'Enter script contribution here': ''}`}
+                        onFocus={() => this.inFocus = true }
+                        onBlur={() => this.inFocus = false}
                     />
                 </div>
                 <button onClick={this.exportToJSON}>export to json</button>
@@ -752,3 +755,8 @@ export default class MentionsEditorExample extends Component {
         );
     }
 }
+
+ScriptEditor.defaultProps = {
+    characterComponent: null
+}
+export default ScriptEditor;

@@ -1,7 +1,14 @@
+html {
+
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  /*unicode-bidi: bidi-override;*/
+  unicode-bidi: bidi-override !important;
+  direction: unset !important;
 }
 
 .editor {
@@ -22,11 +29,13 @@ body {
 }
 .person {
   margin: 0;
-  padding: 16px 24px
+  padding: 4px 8px;
+  position: relative;
+}
+.person a {
+  display: block;
 }
 .selectedPerson {
-  margin: 0;
-  padding: 16px 24px;
   background: #63a29c;
   color: white;
   cursor: pointer;
@@ -57,6 +66,29 @@ body {
   text-align: center;
   background-color: #eeeeee;
   cursor: pointer;
+}
+.character-details {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 300px;
+  height: 100px;
+  border-radius: 2px;
+  color: black;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .1), 0 1px 10px rgba(0, 0, 0, .35);
+  z-index: 99;
+  background-color: white;
+  /*cursor: default;*/
+}
+.character-information {
+  padding: 8px;
+}
+.character-information-title {
+  background-color: #63a29c;
+  color: white;
+  margin: -8px -8px 8px -8px;
+  padding: 8px;
 }
 .DraftEditor-root [id^="placeholder-"] {
   font-family: Courier;
