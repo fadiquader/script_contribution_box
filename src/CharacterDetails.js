@@ -1,6 +1,5 @@
 import React from 'react';
 
-
 function CharacterDetails({ character}) {
     const {
         name, screenplay_display_name, gender, description, age, race
@@ -17,8 +16,8 @@ function CharacterDetails({ character}) {
                     {screenplay_display_name && <p><strong>Screenplay Display Name: </strong> { screenplay_display_name }</p>}
                     {gender && <p><strong>Gender: </strong> { gender }</p>}
                     {age && <p><strong>Age: </strong> { age }</p>}
-                    {<p><strong>Race: </strong> { race }</p>}
-                    <p><strong>Description: </strong> { description }</p>
+                    {race && <p><strong>Race: </strong> { race }</p>}
+                    {description && <p><strong>Description: </strong> { description }</p>}
                 </div>
             </div>
         </div>

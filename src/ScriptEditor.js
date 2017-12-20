@@ -184,7 +184,8 @@ class ScriptEditor extends Component {
                           onTypeheadClick={this.onTypeheadClick}
                           focus={this.editorFoucs}
                           data={this.data}
-                          Component={this.props.characterComponent}
+                          CharacterComponent={this.props.characterComponent}
+                          CharacterItemComponent={this.props.characterItemComponent}
         />;
     }
 
@@ -757,6 +758,7 @@ class ScriptEditor extends Component {
 }
 
 ScriptEditor.defaultProps = {
-    characterComponent: null
+    characterItemComponent: null,
+    characterComponent: null,
 }
 export default ScriptEditor;

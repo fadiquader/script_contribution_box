@@ -58,6 +58,7 @@ const App = () => {
     ];
     return <ScriptEditor characters={characters}
                          onAddCharacter={character => characters.push({ name: 'sdfsdfd'})}
+                         characterItemComponent={null}
                          characterComponent={CharacterDetails}
     />
 }

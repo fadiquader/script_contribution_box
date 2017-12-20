@@ -16,13 +16,14 @@ class Mentions extends Component {
         if( filteredCharacters.length === 0) {
             return null
         }
-        const CharacterComponent = this.props.Component;
+        const { CharacterComponent, CharacterItemComponent } = this.props;
         return (
             <div>
                 <ul className={`typeahead`} style={typeaheadStyle}>
                     {filteredCharacters.map((character, index) => {
                         const isActive = index === normalizedIndex;
                         const className = `person ${isActive ? 'selectedPerson' : ''}`;
+                        const showPopover = isActive && firstChar === '@' && CharacterComponent !== null;
                         return (
                             <li id={`mention_${index}`}
                                 key={`mention_${index}`}
@@ -38,8 +39,10 @@ class Mentions extends Component {
                                 }}
 
                             >
-                                <div dir="rtl" >{character.name}</div>
-                                {isActive && CharacterComponent !== null ? <CharacterContainer>
+                                {CharacterItemComponent ? <CharacterItemComponent character={character} />:
+                                    <div>{character.name}</div>
+                                }
+                                {showPopover ? <CharacterContainer>
                                     <CharacterComponent character={character} />
                                 </CharacterContainer>: ''}
                             </li>
