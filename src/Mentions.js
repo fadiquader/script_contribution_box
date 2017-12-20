@@ -11,16 +11,16 @@ class Mentions extends Component {
             top: typeaheadState.top
         };
         const firstChar = typeaheadState.text[0] || '';
-        const filteredPeople = filterPeople(typeaheadState.text.replace(/^(@|\()/, ''), firstChar, data);
-        const normalizedIndex = normalizeSelectedIndex(typeaheadState.selectedIndex, filteredPeople.length);
-        if( filteredPeople.length === 0) {
+        const filteredCharacters = filterPeople(typeaheadState.text.replace(/^(@|\()/, ''), firstChar, data);
+        const normalizedIndex = normalizeSelectedIndex(typeaheadState.selectedIndex, filteredCharacters.length);
+        if( filteredCharacters.length === 0) {
             return null
         }
         const CharacterComponent = this.props.Component;
         return (
             <div>
-                <ul className={'typeahead'} style={typeaheadStyle}>
-                    {filteredPeople.map((person, index) => {
+                <ul className={`typeahead`} style={typeaheadStyle}>
+                    {filteredCharacters.map((character, index) => {
                         const isActive = index === normalizedIndex;
                         const className = `person ${isActive ? 'selectedPerson' : ''}`;
                         return (
@@ -38,9 +38,9 @@ class Mentions extends Component {
                                 }}
 
                             >
-                                <div dir="rtl" >{person.name}</div>
+                                <div dir="rtl" >{character.name}</div>
                                 {isActive && CharacterComponent !== null ? <CharacterContainer>
-                                    <CharacterComponent details={person} />
+                                    <CharacterComponent character={character} />
                                 </CharacterContainer>: ''}
                             </li>
                         );

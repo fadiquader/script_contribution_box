@@ -629,7 +629,7 @@ class ScriptEditor extends Component {
 
     onEscape = (e) => {
         if (!this.getTypeaheadState(false)) {
-            this.onEscape && this.onEscape(e);
+            this.props.onEscape && this.props.onEscape(e);
             return;
         }
 
