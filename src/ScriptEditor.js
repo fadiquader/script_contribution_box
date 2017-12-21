@@ -14,8 +14,8 @@ import {
     MENTION_REGEX2 ,
     MENTION_PATTERN3
 } from './constants';
-import './index.css';
 import 'draft-js/dist/Draft.css';
+import './index.css';
 const {
     Editor,
     EditorState, ContentState,
@@ -27,7 +27,6 @@ const {
     genKey,
     SelectionState
 } = Draft;
-
 
 const {hasCommandModifier} = KeyBindingUtil;
 
@@ -81,16 +80,19 @@ class ScriptEditor extends Component {
             ]
         }
     }
+
     componentDidMount() {
         const { characters } = this.props;
         this.data['@'] = characters;
     }
+
     componentWillReceiveProps(next) {
         const { characters } = this.props;
         if(next.characters.length !== characters.length){
             this.data['@'] = next.characters;
         }
     }
+
     onChange = (editorState, foucusOnLastBlock=false) => {
         this.setState({ editorState }, () => {
             foucusOnLastBlock && this.focusOnTheLastBlock()
@@ -107,6 +109,7 @@ class ScriptEditor extends Component {
         // const blockType = currentBlock.getType();
         // const start = blockText.substring(0, end).lastIndexOf('@');
     };
+
     onTypeaheadChange = (typeaheadState) => {
         this.setState({ typeaheadState });
     };
@@ -130,13 +133,14 @@ class ScriptEditor extends Component {
             selectedIndex
         }
     }
+
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
         const firstChar = text[0];
         // console.log(text, selectedIndex)
         const contentState = editorState.getCurrentContent();
-        const filteredPeople = filterPeople(text.replace(/^(@|\()/, ''), firstChar, this.data);
-        const index = normalizeSelectedIndex(selectedIndex, filteredPeople.length);
+        const filteredCharacters = filterPeople(text.replace(/^(@|\()/, ''), firstChar, this.data);
+        const index = normalizeSelectedIndex(selectedIndex, filteredCharacters.length);
         if(isNaN(index)) return;
         const insertState = this.getInsertState(index, /^(@|\()/);
         const currentSelectionState = editorState.getSelection();
@@ -146,17 +150,14 @@ class ScriptEditor extends Component {
         });
         const blockKey = mentionTextSelection.getAnchorKey();
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
-        const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', '');
+        const men = filteredCharacters[index];
+        const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', men);
+        // const menText = text.indexOf('@') !== -1 ? filteredCharacters[index].name: `(${filteredCharacters[index].name})`
         const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey();
-        // console.log('text ', text)
-        // if(!MENTION_PATTERN.test(text)) {
-        //     return;
-        // }
-        const menText = text.indexOf('@') !== -1 ? filteredPeople[index].name: `(${filteredPeople[index].name})`
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
             selection,
-            menText,
+            men.name,
             null,
             MENTION_ENTITY_KEY
         );
@@ -175,10 +176,7 @@ class ScriptEditor extends Component {
 
     renderTypeahead() {
         const { typeaheadState } = this.state;
-        // console.log(typeaheadState)
-        if (typeaheadState === null) {
-            return null;
-        }
+        if (typeaheadState === null) return null;
         return <Mentions  typeaheadState = { this.state.typeaheadState}
                           onMouseOver={this.onMentionMouseOver}
                           onTypeheadClick={this.onTypeheadClick}
@@ -221,10 +219,9 @@ class ScriptEditor extends Component {
     // }
 
     onTypeheadClick = (selectedIndex) => {
-        // console.log(selectedIndex)
         if(selectedIndex === -1) {
             this.stackMode = true;
-            this.props.onAddCharacter('')
+            this.props.onAddCharacter('');
             return ;
         }
         this.stackMode = false;
@@ -232,7 +229,8 @@ class ScriptEditor extends Component {
         const selection = contentState.getSelectionAfter();
         const { text } = this.getTypeaheadRange();
         const entitySelection = selection.set(
-            'anchorOffset', selection.getFocusOffset() - text.length
+            'anchorOffset',
+            selection.getFocusOffset() - text.length
         );
         this.handleTypeaheadReturn(text, selectedIndex, entitySelection)
     };
@@ -266,6 +264,7 @@ class ScriptEditor extends Component {
         this.onChange(newEditorState, currentType == 'character' || isActionBlock && currentText.trim() != '');
 
     };
+
     getEditorState = () => this.state.editorState;
 
     blockRendererFn = contentBlock => {
@@ -400,6 +399,7 @@ class ScriptEditor extends Component {
             nextBlock
         }
     }
+
     handleBeforeInput = (str) => {
         // console.log('str ', str)
         const { editorState } = this.state;
@@ -651,13 +651,9 @@ class ScriptEditor extends Component {
         this.onTypeaheadChange && this.onTypeaheadChange(typeaheadState);
     }
 
-    onUpArrow = (e) => {
-        this.onArrow(e, this.props.onUpArrow, -1);
-    };
+    onUpArrow = (e) => this.onArrow(e, this.props.onUpArrow, -1);
 
-    onDownArrow = (e) => {
-        this.onArrow(e, this.props.onDownArrow, 1);
-    }
+    onDownArrow = (e) => this.onArrow(e, this.props.onDownArrow, 1);
 
     handleReturn = (e) => {
         const { typeaheadState, editorState } = this.state;
@@ -703,6 +699,7 @@ class ScriptEditor extends Component {
         }
         return false;
     };
+
     exportToJSON = () => {
         const contentState = this.state.editorState.getCurrentContent();
         const rawJson = Draft.convertToRaw(contentState);
@@ -715,13 +712,15 @@ class ScriptEditor extends Component {
         <div class="courier dialogue">gggggggg <span class="mention">qua</span></div>
         `;
         this.createWithHTML(html)
-    }
+    };
+
     createWithHTML = (html) => {
         const contentBlocks = Draft.convertFromHTML(html);
         const contentState = Draft.ContentState.createFromBlockArray(contentBlocks);
         const newEditorState = Draft.EditorState.createWithContent(contentState);
         this.setState({ editorState: newEditorState });
-    }
+    };
+
     render() {
         return (
             <div onClick={this.editorFoucs}>
@@ -760,5 +759,6 @@ class ScriptEditor extends Component {
 ScriptEditor.defaultProps = {
     characterItemComponent: null,
     characterComponent: null,
-}
+};
+
 export default ScriptEditor;

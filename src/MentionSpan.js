@@ -8,12 +8,11 @@ export default function MentionSpan(props) {
         dir
     } = props;
     return (
-        <span decoratedText={decoratedText}
-              entityKey={entityKey}
+        <span entityKey={entityKey}
               offsetKey={offsetKey}
               dir={dir}
               className={'mention'}>
-          {props.children}
+          {decoratedText}
         </span>
     );
 }
