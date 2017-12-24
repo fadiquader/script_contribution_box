@@ -25,7 +25,8 @@ const {
     KeyBindingUtil,
     DefaultDraftBlockRenderMap,
     genKey,
-    SelectionState
+    SelectionState,
+    convertFromRaw
 } = Draft;
 
 const {hasCommandModifier} = KeyBindingUtil;
@@ -73,7 +74,8 @@ class ScriptEditor extends Component {
         this.stackMode = false;
         this.inFocus = false;
         this.character = {
-            style: {}, data: {}
+            style: {},
+            data: {}
         }
         this.data = {
             '@': [],
@@ -85,8 +87,16 @@ class ScriptEditor extends Component {
         }
     }
 
+    componentWillMount() {
+        const { initialState } = this.props;
+        if(initialState !== null) {
+            const _contentState = convertFromRaw(JSON.parse(initialState));
+            const editorState = EditorState.createWithContent(_contentState, decorator);
+            this.onChange(editorState)
+        }
+    }
     componentDidMount() {
-        const { characters } = this.props;
+        const { characters, initialState } = this.props;
         this.data['@'] = characters;
     }
 
@@ -102,11 +112,9 @@ class ScriptEditor extends Component {
             foucusOnLastBlock && this.focusOnTheLastBlock()
         });
         window.requestAnimationFrame(() => {
-            // Entity.get(entityKey).getType();
-
-
             this.onTypeaheadChange(this.getTypeaheadState(), this.getCharacterDescriptionPopover());
         });
+        this.props.onChange(editorState)
         // const currentSelectionState = editorState.getSelection();
         // const end = currentSelectionState.getAnchorOffset();
         // const anchorKey = currentSelectionState.getAnchorKey();
@@ -120,8 +128,6 @@ class ScriptEditor extends Component {
     getCharacterDescriptionPopover() {
         const entity = this.hasEntityAtSelection();
         if(entity) {
-            const { characterDescription } = this.state;
-
             const entityM = Entity.get(entity);
             const entityData = entityM.getData();
             if(this.character == null || entityData.name !== this.character.data.name) {
@@ -136,11 +142,6 @@ class ScriptEditor extends Component {
                     top: rangeRect.top + rangeRect.height
                 }
             }
-
-            // tempRange.setStart(entity.getStartOffset(), entity.getEndOffset());
-
-            //
-            // let [left, top] = [rangeRect.left, rangeRect.bottom];
         } else {
             this.character = null
         }
@@ -740,7 +741,7 @@ class ScriptEditor extends Component {
         const rawJson = Draft.convertToRaw(contentState);
         const jsonStr = JSON.stringify(rawJson, null, 1);
         const plainText = contentState.getPlainText();
-        console.log()
+        console.log(jsonStr)
         // const html = `
         // <div class="courier action">sdfsdfdsf <span class="mention">fadi</span></div>
         // <div class="courier character"><span class="mention">qua</span> <span class="mention">(v.o)</span></div>
@@ -755,8 +756,16 @@ class ScriptEditor extends Component {
         const newEditorState = Draft.EditorState.createWithContent(contentState);
         this.setState({ editorState: newEditorState });
     };
-
+    onFocus = () => {
+        this.inFocus = true;
+        this.props.onFocus();
+    };
+    onBlur = () => {
+        this.inFocus = false;
+        this.props.onBlur();
+    }
     render() {
+        const { readOnly, placeholder } = this.props;
         return (
             <div onClick={this.editorFoucs}>
                 {this.renderTypeahead()}
@@ -767,7 +776,6 @@ class ScriptEditor extends Component {
                         onTab={this.onTab}
                         editorState={this.state.editorState}
                         onChange={this.onChange}
-                        // onTypeaheadChange={this.onTypeaheadChange}
                         onEscape={this.onEscape}
                         onUpArrow={this.onUpArrow}
                         onDownArrow={this.onDownArrow}
@@ -778,15 +786,13 @@ class ScriptEditor extends Component {
                         blockRenderMap={extendedBlockRenderMap}
                         handleKeyCommand={this.handleKeyCommand}
                         keyBindingFn={myKeyBindingFn}
-                        // onPressEnter={this.onPressEnter}
-                        // getCurrentAndBeforBlocks={this.getCurrentAndBeforBlocks}
-                        // stackMode={this.stackMode}
-                        placeholder={`${!this.inFocus ? 'Enter script contribution here': ''}`}
-                        onFocus={() => this.inFocus = true }
-                        onBlur={() => this.inFocus = false}
+                        placeholder={`${!this.inFocus ? placeholder: ''}`}
+                        onFocus={this.onFocus }
+                        onBlur={this.onBlur }
+                        readOnly={readOnly}
                     />
                 </div>
-                <button onClick={this.exportToJSON}>export to json</button>
+                {/*<button onClick={this.exportToJSON}>export to json</button>*/}
             </div>
         );
     }
@@ -795,6 +801,13 @@ class ScriptEditor extends Component {
 ScriptEditor.defaultProps = {
     characterItemComponent: null,
     characterComponent: null,
+    onChange: () => null,
+    onBlur: () => null,
+    onFocus: () => null,
+    onTab: () => null,
+    readOnly: false,
+    initialState: null,
+    placeholder: 'Enter script contribution here'
 };
 
 export default ScriptEditor;
