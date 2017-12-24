@@ -763,6 +763,116 @@ class ScriptEditor extends Component {
     onBlur = () => {
         this.inFocus = false;
         this.props.onBlur();
+    };
+    getCurrentBlock = (editorState) => {
+        const selectionState = editorState.getSelection();
+        const contentState = editorState.getCurrentContent();
+        const block = contentState.getBlockForKey(selectionState.getStartKey());
+        return block;
+    };
+    addNewBlock = (editorState, newType = 'action', initialData = {}) => {
+        const selectionState = editorState.getSelection();
+        if (!selectionState.isCollapsed()) {
+            return editorState;
+        }
+        const contentState = editorState.getCurrentContent();
+        const key = selectionState.getStartKey();
+        const blockMap = contentState.getBlockMap();
+        const currentBlock = this.getCurrentBlock(editorState);
+        if (!currentBlock) {
+            return editorState;
+        }
+        if (currentBlock.getLength() === 0) {
+            if (currentBlock.getType() === newType) {
+                return editorState;
+            }
+            const newBlock = currentBlock.merge({
+                type: newType,
+                data: '',
+            });
+            const newContentState = contentState.merge({
+                blockMap: blockMap.set(key, newBlock),
+                selectionAfter: selectionState,
+            });
+            return EditorState.push(editorState, newContentState, 'change-block-type');
+        }
+        return editorState;
+    };
+    insertBlock (type) {
+        const { editorState } = this.state;
+        const { currentBlock, prevBlock, nextBlock } = this.getCurrentAndBeforBlocks(editorState);
+        const blockMap = editorState.getCurrentContent().getBlockMap();
+        const blockType = currentBlock.getType();
+        const prevType = prevBlock && prevBlock.getType();
+        const last = blockMap.last();
+        const first = blockMap.first();
+        // if( currentBlock.getText().trim() == ""&& (last.getKey() == first.getKey())) return;
+        switch (type) {
+            case 'character':
+                // if(currentBlock.getType() !== 'action') return;
+                // this.insertBlock('character');
+                console.log('yyy', type)
+                const newEditorState = this.addNewBlock(editorState, 'character')
+                this.setState({
+                    editorState: newEditorState
+                    })
+                break;
+            case 'dialogue':
+                if(prevBlock.getType() !== 'character' || prevBlock.getType() !== 'dialogue') return;
+                break;
+            case '':
+                break;
+            default:
+
+
+        }
+        // if(first.getKey() == last.getKey() && first.getType() == 'character') {
+        //     this.resetBlockType(editorState, 'action');
+        //     return;
+        // }
+        // if(currentBlock.getText() == "" &&
+        //     blockType === 'character' && (prevType === 'dialogue' || prevType === 'action')) {
+        //     this.resetBlockType(editorState, prevType);
+        //     return 'handled';
+        // }
+        // if((blockType == 'dialogue' || blockType == 'character' && nextBlock && nextBlock.getType() === 'dialogue')
+        //     && currentBlock.getText().trim() != "" && focusOffset == 0) {
+        //     return 'handled';
+        // }
+        // if(blockType === 'dialogue' && prevType === 'character') {
+        //     if((currentBlock.getText() == "" || focusOffset == 0)&& nextBlock && nextBlock.getType() === 'action') {
+        //         return 'handled'
+        //     }
+        //     return 'not-handled';
+        // }
+        // else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
+        //     if(currentBlock.getText() != '') return 'not-handled';
+        //     this.resetBlockType(editorState, 'action');
+        //     return 'handled';
+        // }
+        // else if(currentBlock.getText() == "" && blockType == 'character' && nextBlock && nextBlock.getType() === 'action') {
+        //     return 'handled'
+        // }
+    }
+    renderMobileActions() {
+        const { isMobile } = this.props;
+        return (
+            <div className="mobile-actions">
+                <a onClick={this.insertBlock.bind(this, 'action')}>
+                    Action
+                </a>
+                <a onClick={this.insertBlock.bind(this, 'character')}>
+                    Character
+                </a>
+                <a onClick={this.insertBlock.bind(this, 'dialogue')}>
+                    Dialogue
+                </a>
+                {/*<a onClick={this.insertBlock.bind(this, 'dialogue')}>*/}
+                    {/*Parenthetical*/}
+                {/*</a>*/}
+
+            </div>
+        )
     }
     render() {
         const { readOnly, placeholder } = this.props;
@@ -770,6 +880,7 @@ class ScriptEditor extends Component {
             <div onClick={this.editorFoucs}>
                 {this.renderTypeahead()}
                 {this.renderCharacterDescription()}
+                { this.renderMobileActions() }
                 <div className={'editor'}>
                     <Editor
                         ref="editor"
