@@ -90,7 +90,7 @@ const App = () => {
   }
  ]
 }`;
-    return <ScriptEditor initialState={initialState}
+    return <ScriptEditor initialState={null}
                          characters={characters}
                          onAddCharacter={character => characters.push({ name: 'sdfsdfd'})}
                          characterItemComponent={null}
