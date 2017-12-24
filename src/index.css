@@ -44,6 +44,7 @@ body {
 .mention {
   color: #63a29c;
   /*cursor: pointer;*/
+  position: relative;
 }
 .action {
   padding: 8px 0;
@@ -104,4 +105,17 @@ body {
 .character-information-1 .character-data {
   width: 190px;
   font-size: 12px;
+}
+
+.descr {
+  position: absolute;
+  bottom: -100%;
+  right: 0;
+  background-color: #cccccc;
+  z-index: 999;
+  cursor: default;
+}
+.character-p {
+  position: absolute;
+  background-color: white;
 }

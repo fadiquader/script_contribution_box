@@ -67,10 +67,14 @@ class ScriptEditor extends Component {
         super();
         this.state = {
             editorState: EditorState.createEmpty(decorator),
-            typeaheadState: null
+            typeaheadState: null,
+            characterDescription: null
         };
         this.stackMode = false;
         this.inFocus = false;
+        this.character = {
+            style: {}, data: {}
+        }
         this.data = {
             '@': [],
             '(': [
@@ -98,7 +102,10 @@ class ScriptEditor extends Component {
             foucusOnLastBlock && this.focusOnTheLastBlock()
         });
         window.requestAnimationFrame(() => {
-            this.onTypeaheadChange(this.getTypeaheadState());
+            // Entity.get(entityKey).getType();
+
+
+            this.onTypeaheadChange(this.getTypeaheadState(), this.getCharacterDescriptionPopover());
         });
         // const currentSelectionState = editorState.getSelection();
         // const end = currentSelectionState.getAnchorOffset();
@@ -110,8 +117,37 @@ class ScriptEditor extends Component {
         // const start = blockText.substring(0, end).lastIndexOf('@');
     };
 
-    onTypeaheadChange = (typeaheadState) => {
-        this.setState({ typeaheadState });
+    getCharacterDescriptionPopover() {
+        const entity = this.hasEntityAtSelection();
+        if(entity) {
+            const { characterDescription } = this.state;
+
+            const entityM = Entity.get(entity);
+            const entityData = entityM.getData();
+            if(this.character == null || entityData.name !== this.character.data.name) {
+                this.character = {};
+                this.character.data = entityData;
+                const tempRange = window.getSelection().getRangeAt(0).cloneRange();
+                tempRange.setStart(tempRange.startContainer, 0 );
+                const rangeRect = tempRange.getBoundingClientRect();
+                // console.log(tempRange, rangeRect)
+                this.character.style = {
+                    left: rangeRect.left,
+                    top: rangeRect.top + rangeRect.height
+                }
+            }
+
+            // tempRange.setStart(entity.getStartOffset(), entity.getEndOffset());
+
+            //
+            // let [left, top] = [rangeRect.left, rangeRect.bottom];
+        } else {
+            this.character = null
+        }
+        return  this.character;
+    }
+    onTypeaheadChange = (typeaheadState, characterDescription=null) => {
+        this.setState({ typeaheadState, characterDescription });
     };
 
     getInsertState(selectedIndex, trigger) {
@@ -186,7 +222,16 @@ class ScriptEditor extends Component {
                           CharacterItemComponent={this.props.characterItemComponent}
         />;
     }
-
+    renderCharacterDescription() {
+        const { characterDescription } = this.state;
+        if(characterDescription == null) return null;
+        const CharacterDetails = this.props.characterComponent;
+        return (
+            <div style={characterDescription.style} className="character-details">
+                <CharacterDetails character={characterDescription.data} />
+            </div>
+        )
+    }
     onMentionMouseOver = index => {
         const newTypeheadState = { ...this.state.typeaheadState };
         newTypeheadState.selectedIndex = index;
@@ -551,32 +596,22 @@ class ScriptEditor extends Component {
     // type head
     hasEntityAtSelection() {
         const { editorState } = this.state;
-
         const selection = editorState.getSelection();
-        if (!selection.getHasFocus()) {
-            return false;
-        }
-
+        if (!selection.getHasFocus()) return false;
         const contentState = editorState.getCurrentContent();
         const block = contentState.getBlockForKey(selection.getStartKey());
-        return !!block.getEntityAt(selection.getStartOffset() - 1);
+        const entity = block.getEntityAt(selection.getStartOffset() - 1);
+        return entity || false;
     }
 
     getTypeaheadRange() {
         const { editorState } = this.state;
         const { currentBlock } = this.getCurrentAndBeforBlocks(editorState);
-
         const selection = window.getSelection();
-        if (selection.rangeCount === 0) {
-            return null;
-        }
-        if (this.hasEntityAtSelection()) {
-            return null;
-        }
-
+        if (selection.rangeCount === 0) return null;
+        if (this.hasEntityAtSelection()) return null;
         const range = selection.getRangeAt(0);
         let text = range.startContainer.textContent;
-
         // Remove text that appears after the cursor..
         text = text.substring(0, range.startOffset);
         // ..and before the typeahead token
@@ -705,13 +740,13 @@ class ScriptEditor extends Component {
         const rawJson = Draft.convertToRaw(contentState);
         const jsonStr = JSON.stringify(rawJson, null, 1);
         const plainText = contentState.getPlainText();
-
-        const html = `
-        <div class="courier action">sdfsdfdsf <span class="mention">fadi</span></div>
-        <div class="courier character"><span class="mention">qua</span> <span class="mention">(v.o)</span></div>        
-        <div class="courier dialogue">gggggggg <span class="mention">qua</span></div>
-        `;
-        this.createWithHTML(html)
+        console.log()
+        // const html = `
+        // <div class="courier action">sdfsdfdsf <span class="mention">fadi</span></div>
+        // <div class="courier character"><span class="mention">qua</span> <span class="mention">(v.o)</span></div>
+        // <div class="courier dialogue">gggggggg <span class="mention">qua</span></div>
+        // `;
+        // this.createWithHTML(html)
     };
 
     createWithHTML = (html) => {
@@ -725,6 +760,7 @@ class ScriptEditor extends Component {
         return (
             <div onClick={this.editorFoucs}>
                 {this.renderTypeahead()}
+                {this.renderCharacterDescription()}
                 <div className={'editor'}>
                     <Editor
                         ref="editor"

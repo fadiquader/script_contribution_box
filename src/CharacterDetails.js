@@ -1,6 +1,6 @@
 import React from 'react';
 
-function CharacterDetails({ character}) {
+function CharacterDetails({ character }) {
     const {
         name, screenplay_display_name, gender, description, age, race
     } = character;
