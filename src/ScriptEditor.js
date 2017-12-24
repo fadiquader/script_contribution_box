@@ -112,7 +112,9 @@ class ScriptEditor extends Component {
             foucusOnLastBlock && this.focusOnTheLastBlock()
         });
         window.requestAnimationFrame(() => {
-            this.onTypeaheadChange(this.getTypeaheadState(), this.getCharacterDescriptionPopover());
+            this.onTypeaheadChange(this.getTypeaheadState(),
+                // this.getCharacterDescriptionPopover()
+                );
         });
         this.props.onChange(editorState)
         // const currentSelectionState = editorState.getSelection();
@@ -189,12 +191,12 @@ class ScriptEditor extends Component {
         const blockSize = editorState.getCurrentContent().getBlockForKey(blockKey).getLength();
         const men = filteredCharacters[index];
         const contentWithEntity = contentState.createEntity('MENTION', 'IMMUTABLE', men);
-        // const menText = text.indexOf('@') !== -1 ? filteredCharacters[index].name: `(${filteredCharacters[index].name})`
+        const menText = text.indexOf('@') !== -1 ? filteredCharacters[index].name: `(${filteredCharacters[index].name})`
         const MENTION_ENTITY_KEY = contentWithEntity.getLastCreatedEntityKey();
         let contentStateWithEntity = Modifier.replaceText(
             contentWithEntity,
             selection,
-            men.name,
+            menText,
             null,
             MENTION_ENTITY_KEY
         );
@@ -466,7 +468,7 @@ class ScriptEditor extends Component {
             // console.log(mCh);
             if((str == '@' || str == '(')&& blockText.indexOf("@") !== -1) return true;
             if(mCh) return true;
-            if((str == '@' || str == '(') && blockText.length == 0) {
+            if((str == '@') && blockText.length == 0) {
                 return false;
             } else if(blockText.length > 0 &&MENTION_PATTERN.test(blockText.trim())) {
                 // console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
