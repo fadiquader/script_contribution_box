@@ -13,6 +13,7 @@ import {
     convertToRaw
 } from 'draft-js';
 import {Map, List } from 'immutable';
+import isEqual from 'lodash/isEqual';
 import { Mentions } from './Mentions';
 import { Action } from './Action';
 import {Character }  from './Character';
@@ -34,6 +35,28 @@ import './index.css';
 
 const {hasCommandModifier} = KeyBindingUtil;
 
+const blockRenderMap = Map({
+    // 'character': {
+    //     element: 'div',
+    //     wrapper: <Character />
+    // },
+    // 'dialogue': {
+    //     element: 'div',
+    //     wrapper: <Dialogue />
+    // },
+    // 'unstyled': {
+    //     element: 'div',
+    //     wrapper: <Action />
+    // },
+    // 'action': {
+    //     element: 'div',
+    //     wrapper: <Action />
+    // }
+});
+
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
+
+// const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 const myKeyBindingFn = (e) => {
     if (e.keyCode === 83 /* `S` key */ && hasCommandModifier(e)) {
         return 'myeditor-save';
@@ -196,6 +219,7 @@ class ScriptEditor extends Component {
 
     renderTypeahead() {
         const { typeaheadState } = this.state;
+        const { isMobile } = this.props;
         if (typeaheadState === null) return null;
         return <Mentions  typeaheadState = { this.state.typeaheadState}
                           onMouseOver={this.onMentionMouseOver}
@@ -204,6 +228,7 @@ class ScriptEditor extends Component {
                           data={this.data}
                           CharacterComponent={this.props.characterComponent}
                           CharacterItemComponent={this.props.characterItemComponent}
+                          isMobile={isMobile}
         />;
     }
 
@@ -753,27 +778,27 @@ class ScriptEditor extends Component {
         const last = blockMap.last();
         const first = blockMap.first();
         if(currentBlock.getText().trim() !== "" || (last.getKey() == first.getKey())) {
-            this.editorFoucs();
+            // this.editorFoucs();
             return;
         };
         switch (type) {
             case CHARACTER:
                 if(prevType && prevType === CHARACTER || currentBlock.getText().trim() !== "") {
-                    this.editorFoucs();
+                    // this.editorFoucs();
                     return;
                 };
                 this.onChange(this.insertCharacter(CHARACTER));
                 break;
             case DIALOGUE:
                 if(prevType && prevType === ACTION || prevType === 'unstyled') {
-                    this.editorFoucs();
+                    // this.editorFoucs();
                     return;
                 };
                 this.resetBlockType(editorState, DIALOGUE);
                 break;
             case 'Parenthetical':
                 if((prevType && prevType === ACTION || prevType === 'unstyled') || blockType === CHARACTER) {
-                    this.editorFoucs();
+                    // this.editorFoucs();
                     return;
                 }
                 let newS = EditorState.push(

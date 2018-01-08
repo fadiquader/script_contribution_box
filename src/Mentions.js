@@ -4,15 +4,6 @@ import CharacterContainer from './CharacterContainer';
 import { normalizeSelectedIndex, filterPeople } from './utils';
 
 class Mentions extends Component {
-    // componentDidMount() {
-    //     this._popup = document.createElement('div');
-    //     document.body.appendChild(this._popup);
-    // }
-    // componentWillUnmount() {
-    //     // ReactDOM.unmountComponentAtNode(this._popup);
-    //     document.body.removeChild(this._popup);
-    // }
-
     render() {
         const { typeaheadState, onMouseOver, onTypeheadClick, focus, data } = this.props;
         const typeaheadStyle = {
@@ -41,7 +32,10 @@ class Mentions extends Component {
                                 className={className}
                                 onMouseOver={() => onMouseOver(index)}
                                 onMouseDown={() => onTypeheadClick(index)}
-                                onTouchStart={() => onTypeheadClick(index)}
+                                onTouchEnd={(e) => {
+                                    e.preventDefault();
+                                    onTypeheadClick(index)
+                                }}
                                 onContextMenu={(e) => {
                                     e.preventDefault();
                                     onTypeheadClick(index) ;
