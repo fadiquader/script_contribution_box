@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ScriptEditor from './ScriptEditor';
+import {ScriptEditor} from './ScriptEditor';
 import CharacterDetails from './CharacterDetails';
 
 import registerServiceWorker from './registerServiceWorker';

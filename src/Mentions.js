@@ -1,8 +1,18 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import CharacterContainer from './CharacterContainer';
 import { normalizeSelectedIndex, filterPeople } from './utils';
 
 class Mentions extends Component {
+    // componentDidMount() {
+    //     this._popup = document.createElement('div');
+    //     document.body.appendChild(this._popup);
+    // }
+    // componentWillUnmount() {
+    //     // ReactDOM.unmountComponentAtNode(this._popup);
+    //     document.body.removeChild(this._popup);
+    // }
+
     render() {
         const { typeaheadState, onMouseOver, onTypeheadClick, focus, data } = this.props;
         const typeaheadStyle = {
@@ -17,6 +27,7 @@ class Mentions extends Component {
             return null
         }
         const { CharacterComponent, CharacterItemComponent } = this.props;
+
         return (
             <div>
                 <ul className={`typeahead`} style={typeaheadStyle}>
@@ -29,18 +40,17 @@ class Mentions extends Component {
                                 key={`mention_${index}`}
                                 className={className}
                                 onMouseOver={() => onMouseOver(index)}
-                                onMouseDown={() => {
-                                    onTypeheadClick(index) ;
-                                    focus();
-                                }}
+                                onMouseDown={() => onTypeheadClick(index)}
+                                onTouchStart={() => onTypeheadClick(index)}
                                 onContextMenu={(e) => {
                                     e.preventDefault();
                                     onTypeheadClick(index) ;
                                 }}
 
+
                             >
                                 {CharacterItemComponent ? <CharacterItemComponent character={character} />:
-                                    <div>{character.name}</div>
+                                    <div>{character.label || character.name }</div>
                                 }
                                 {showPopover ? <CharacterContainer>
                                     <CharacterComponent character={character} />
@@ -58,4 +68,4 @@ class Mentions extends Component {
     }
 }
 
-export default Mentions;
+export { Mentions };

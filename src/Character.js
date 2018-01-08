@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
 
 
-export default class Character extends Component {
-    constructor(props) {
-        super(props);
-    }
-
+export class Character extends Component {
     render() {
         return (
             <div className="character">

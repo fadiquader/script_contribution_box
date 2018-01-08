@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 
-export default class Dialogue extends PureComponent {
+export class Dialogue extends PureComponent {
     render() {
         return (
             <div className="dialogue">

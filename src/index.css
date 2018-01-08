@@ -1,16 +1,7 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-  /*unicode-bidi: bidi-override;*/
-  unicode-bidi: bidi-override !important;
-  direction: unset !important;
-}
-
-.editor {
+.editor-s {
   min-height: 80px;
   padding: 10px;
-  border: 1px solid #ccc;
+  /*background-color: white;*/
 }
 
 .typeahead {
@@ -22,6 +13,7 @@ body {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .1), 0 1px 10px rgba(0, 0, 0, .35);
   border-radius: 3px;
   list-style-type: none;
+  z-index: 2;
 }
 .person {
   margin: 0;
@@ -47,13 +39,13 @@ body {
   position: relative;
 }
 .action {
-  padding: 8px 0;
+  padding-top: 8px;
 }
 .character {
-  padding: 0 150px;
+  padding: 0 33.3333%;
 }
 .dialogue {
-  padding: 0 70px;
+  padding: 0 16.666%;
 }
 .display-none {
   display: none;
@@ -109,7 +101,7 @@ body {
 
 .descr {
   position: absolute;
-  bottom: -100%;
+  /*bottom: -100%;*/
   right: 0;
   background-color: #cccccc;
   z-index: 999;
@@ -119,3 +111,32 @@ body {
   position: absolute;
   background-color: white;
 }
+.parenthes-1 {
+  padding-left: 16px;
+  padding-right: 16px;
+  display: inherit;
+}
+.script-contributions-ctrls {
+  margin: -16px;
+  margin-bottom: 16px;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #e2e2e2;
+}
+.script-contributions-ctrls a {
+  display: inline-block;
+  text-align: center;
+  padding: 16px 2px;
+  width: 25%;
+
+}
+
+.expanded-script {
+  max-height: 300px;
+  overflow-y: hidden;
+}
+
+/*@media (max-width: 767px) {*/
+/*.script-editor {*/
+/**/
+/*}*/
+/*}*/

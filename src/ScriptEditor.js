@@ -1,22 +1,5 @@
 import React, { Component } from 'react';
-import Draft from 'draft-js';
-import {Map, List } from 'immutable';
-import Mentions from './Mentions';
-import Action from './Action';
-import Character  from './Character';
-import Dialogue  from './Dialogue';
-import { decorator } from './strategies';
-import { normalizeSelectedIndex, filterPeople } from './utils'
 import {
-    MENTION_REGEX,
-    MENTION_PATTERN,
-    MENTION_PATTERN2,
-    MENTION_REGEX2 ,
-    MENTION_PATTERN3
-} from './constants';
-import 'draft-js/dist/Draft.css';
-import './index.css';
-const {
     Editor,
     EditorState, ContentState,
     ContentBlock,
@@ -26,33 +9,31 @@ const {
     DefaultDraftBlockRenderMap,
     genKey,
     SelectionState,
-    convertFromRaw
-} = Draft;
+    convertFromRaw,
+    convertToRaw
+} from 'draft-js';
+import {Map, List } from 'immutable';
+import { Mentions } from './Mentions';
+import { Action } from './Action';
+import {Character }  from './Character';
+import { Dialogue }  from './Dialogue';
+import { decorator } from './strategies';
+import { normalizeSelectedIndex, filterPeople } from './utils'
+import {
+    MENTION_REGEX,
+    MENTION_PATTERN,
+    MENTION_PATTERN2,
+    MENTION_REGEX2 ,
+    MENTION_PATTERN3,
+    ACTION,
+    CHARACTER,
+    DIALOGUE
+} from './constants';
+import 'draft-js/dist/Draft.css';
+import './index.css';
 
 const {hasCommandModifier} = KeyBindingUtil;
 
-const blockRenderMap = Map({
-    // 'character': {
-    //     element: 'div',
-    //     wrapper: <Character />
-    // },
-    // 'dialogue': {
-    //     element: 'div',
-    //     wrapper: <Dialogue />
-    // },
-    // 'unstyled': {
-    //     element: 'div',
-    //     wrapper: <Action />
-    // },
-    // 'action': {
-    //     element: 'div',
-    //     wrapper: <Action />
-    // }
-});
-
-const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
-
-// const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 const myKeyBindingFn = (e) => {
     if (e.keyCode === 83 /* `S` key */ && hasCommandModifier(e)) {
         return 'myeditor-save';
@@ -62,6 +43,7 @@ const myKeyBindingFn = (e) => {
     }
     return getDefaultKeyBinding(e);
 };
+
 
 class ScriptEditor extends Component {
     constructor() {
@@ -76,7 +58,7 @@ class ScriptEditor extends Component {
         this.character = {
             style: {},
             data: {}
-        }
+        };
         this.data = {
             '@': [],
             '(': [
@@ -95,8 +77,9 @@ class ScriptEditor extends Component {
             this.onChange(editorState)
         }
     }
+
     componentDidMount() {
-        const { characters, initialState } = this.props;
+        const { characters } = this.props;
         this.data['@'] = characters;
     }
 
@@ -107,24 +90,16 @@ class ScriptEditor extends Component {
         }
     }
 
-    onChange = (editorState, foucusOnLastBlock=false) => {
+    onChange = (editorState, foucusOnLastBlock=false, focus=false) => {
         this.setState({ editorState }, () => {
-            foucusOnLastBlock && this.focusOnTheLastBlock()
+            foucusOnLastBlock && this.focusOnTheLastBlock();
+            // this.editorFoucs();
         });
         window.requestAnimationFrame(() => {
             this.onTypeaheadChange(this.getTypeaheadState(),
                 // this.getCharacterDescriptionPopover()
-                );
-        });
+            );});
         this.props.onChange(editorState)
-        // const currentSelectionState = editorState.getSelection();
-        // const end = currentSelectionState.getAnchorOffset();
-        // const anchorKey = currentSelectionState.getAnchorKey();
-        // const currentContent = editorState.getCurrentContent();
-        // const currentBlock = currentContent.getBlockForKey(anchorKey);
-        // const blockText = currentBlock.getText();
-        // const blockType = currentBlock.getType();
-        // const start = blockText.substring(0, end).lastIndexOf('@');
     };
 
     getCharacterDescriptionPopover() {
@@ -149,6 +124,7 @@ class ScriptEditor extends Component {
         }
         return  this.character;
     }
+
     onTypeaheadChange = (typeaheadState, characterDescription=null) => {
         this.setState({ typeaheadState, characterDescription });
     };
@@ -173,10 +149,18 @@ class ScriptEditor extends Component {
         }
     }
 
+    insertChar(contentState, char) {
+        return Modifier.insertText(
+            contentState,
+            contentState.getSelectionAfter(),
+            char
+        );
+    }
+
     handleTypeaheadReturn = (text, selectedIndex, selection) => {
         const { editorState } = this.state;
+        if(text == null) return;
         const firstChar = text[0];
-        // console.log(text, selectedIndex)
         const contentState = editorState.getCurrentContent();
         const filteredCharacters = filterPeople(text.replace(/^(@|\()/, ''), firstChar, this.data);
         const index = normalizeSelectedIndex(selectedIndex, filteredCharacters.length);
@@ -201,16 +185,13 @@ class ScriptEditor extends Component {
             MENTION_ENTITY_KEY
         );
         if (blockSize === insertState.end) {
-            contentStateWithEntity = Modifier.insertText(
-                contentStateWithEntity,
-                contentStateWithEntity.getSelectionAfter(),
-                ' '
-            );
+            contentStateWithEntity = this.insertChar(contentStateWithEntity, ' ')
         }
         const nextEditorState = EditorState.push(
             editorState, contentStateWithEntity, 'apply-entity'
         );
-        this.onChange(nextEditorState)
+        this.onChange(nextEditorState);
+        setTimeout(() => this.editorFoucs(), 0)
     };
 
     renderTypeahead() {
@@ -225,6 +206,7 @@ class ScriptEditor extends Component {
                           CharacterItemComponent={this.props.characterItemComponent}
         />;
     }
+
     renderCharacterDescription() {
         const { characterDescription } = this.state;
         if(characterDescription == null) return null;
@@ -235,36 +217,12 @@ class ScriptEditor extends Component {
             </div>
         )
     }
+
     onMentionMouseOver = index => {
         const newTypeheadState = { ...this.state.typeaheadState };
         newTypeheadState.selectedIndex = index;
         this.setState({ typeaheadState: newTypeheadState })
     };
-
-    // getTypeaheadRange() {
-    //     const selection = window.getSelection();
-    //     if (selection.rangeCount === 0) {
-    //         return null;
-    //     }
-    //     const range = selection.getRangeAt(0);
-    //     let text = range.startContainer.textContent;
-    //
-    //     // Remove text that appears after the cursor..
-    //     text = text.substring(0, range.startOffset);
-    //
-    //     // ..and before the typeahead token.
-    //     let index = text.lastIndexOf('@');
-    //     if (index === -1) {
-    //         index = text.lastIndexOf('(');
-    //         if(index === -1) return null;
-    //     }
-    //     text = text.substring(index);
-    //     return {
-    //         text,
-    //         start: index,
-    //         end: range.startOffset
-    //     };
-    // }
 
     onTypeheadClick = (selectedIndex) => {
         if(selectedIndex === -1) {
@@ -275,7 +233,10 @@ class ScriptEditor extends Component {
         this.stackMode = false;
         const contentState = this.state.editorState.getCurrentContent();
         const selection = contentState.getSelectionAfter();
-        const { text } = this.getTypeaheadRange();
+        let text = '@';
+        const typehead = this.getTypeaheadRange();
+        if(typehead !== null) text = typehead.text;
+        if(text == null) return;
         const entitySelection = selection.set(
             'anchorOffset',
             selection.getFocusOffset() - text.length
@@ -291,25 +252,25 @@ class ScriptEditor extends Component {
         event.preventDefault();
         const { editorState } = this.state;
         // const editorState = changeDepth(this.state.editorState, event.shiftKey ? -1 : 1, 4);
-        let newEditorState = this.insertCharacter('character');
+        let newEditorState = this.insertCharacter(CHARACTER);
         const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
         const currentType = currentBlock.getType();
         const currentText = currentBlock.getText();
         const blockMap = editorState.getCurrentContent().getBlockMap();
         // const last = blockMap.last();
         const first = blockMap.first();
-        const isActionBlock  = currentType === 'action' || currentType === 'unstyled';
+        const isActionBlock  = currentType === ACTION || currentType === 'unstyled';
         if(first.getKey() == currentBlock.getKey() && currentText.trim() == '') return;
         if(isActionBlock && currentText.trim() != '') {
-            newEditorState = this.addEmptyBlock(editorState, 'action')
+            newEditorState = this.addEmptyBlock(editorState, ACTION)
         }
-        if(currentType === 'dialogue' && prevBlock === 'character') return;
+        if(currentType === DIALOGUE && prevBlock === CHARACTER) return;
         if(currentText.trim() != '') return;
         // if(currentText !== '' && currentType !== 'character') return;
         // if(currentType == 'character') {
         //     newEditorState = this.addEmptyBlock(editorState, 'character')
         // }
-        this.onChange(newEditorState, currentType == 'character' || isActionBlock && currentText.trim() != '');
+        this.onChange(newEditorState, currentType == CHARACTER || isActionBlock && currentText.trim() != '');
 
     };
 
@@ -318,8 +279,9 @@ class ScriptEditor extends Component {
     blockRendererFn = contentBlock => {
         const type = contentBlock.getType();
         const text = contentBlock.getText();
+        return null;
         switch (text) {
-            case 'character':
+            case CHARACTER:
                 return {
                     component: Character,
                     editable: true,
@@ -328,7 +290,7 @@ class ScriptEditor extends Component {
                         onChange: this.onChange
                     }
                 };
-            case 'dialogue':
+            case DIALOGUE:
                 return {
                     component: Dialogue,
                     editable: true,
@@ -337,7 +299,7 @@ class ScriptEditor extends Component {
                         onChange: this.onChange
                     }
                 };
-            case 'action':
+            case ACTION:
                 return {
                     component: Action,
                     editable: true,
@@ -356,9 +318,9 @@ class ScriptEditor extends Component {
         const type = block.getType();
         // const text = block.getText();
         switch (type) {
-            case 'character':
+            case CHARACTER:
                 return 'courier character';
-            case 'dialogue':
+            case DIALOGUE:
                 return 'courier dialogue';
             default:
                 return 'courier action';
@@ -371,7 +333,7 @@ class ScriptEditor extends Component {
         const contentStateWithEntity = Modifier.setBlockType(
             contentState,
             contentState.getSelectionAfter(),
-            'character'
+            CHARACTER
         );
         return  EditorState.push(
             editorState, contentStateWithEntity, 'apply-entity'
@@ -393,31 +355,31 @@ class ScriptEditor extends Component {
             const selection = editorState.getSelection();
             const focusOffset = selection.getFocusOffset();
             // console.log(selection.getFocusOffset())
-            if(first.getKey() == last.getKey() && first.getType() == 'character') {
-                this.resetBlockType(editorState, 'action');
+            if(first.getKey() == last.getKey() && first.getType() == CHARACTER) {
+                this.resetBlockType(editorState, ACTION);
                 return 'handled';
             }
             if(currentBlock.getText() == "" &&
-                blockType === 'character' && (prevType === 'dialogue' || prevType === 'action')) {
+                blockType === CHARACTER && (prevType === DIALOGUE || prevType === ACTION)) {
                 this.resetBlockType(editorState, prevType);
                 return 'handled';
             }
-            if((blockType == 'dialogue' || blockType == 'character' && nextBlock && nextBlock.getType() === 'dialogue')
+            if((blockType == DIALOGUE || blockType == CHARACTER && nextBlock && nextBlock.getType() === DIALOGUE)
                 && currentBlock.getText().trim() != "" && focusOffset == 0) {
                 return 'handled';
             }
-            if(blockType === 'dialogue' && prevType === 'character') {
-                if((currentBlock.getText() == "" || focusOffset == 0)&& nextBlock && nextBlock.getType() === 'action') {
+            if(blockType === DIALOGUE && prevType === CHARACTER) {
+                if((currentBlock.getText() == "" || focusOffset == 0)&& nextBlock && nextBlock.getType() === ACTION) {
                     return 'handled'
                 }
                 return 'not-handled';
             }
-            else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
+            else if(blockType == DIALOGUE && (prevType == CHARACTER || prevType == DIALOGUE)) {
                 if(currentBlock.getText() != '') return 'not-handled';
-                this.resetBlockType(editorState, 'action');
+                this.resetBlockType(editorState, ACTION);
                 return 'handled';
             }
-            else if(currentBlock.getText() == "" && blockType == 'character' && nextBlock && nextBlock.getType() === 'action') {
+            else if(currentBlock.getText() == "" && blockType == CHARACTER && nextBlock && nextBlock.getType() === ACTION) {
                 return 'handled'
             }
             // if(blockType == 'dialogue' && prevType =='dialogue' || first === 'character'){
@@ -437,8 +399,6 @@ class ScriptEditor extends Component {
         /* Get the current block */
         const contentState = editorState.getCurrentContent();
         const currentBlock = contentState.getBlockForKey(startKey);
-        // const blockType = currentBlock.getType();
-        // const blockLength = currentBlock.getLength();
         const prevBlock = contentState.getBlockBefore(startKey);
         const nextBlock = contentState.getBlockAfter(startKey);
         return {
@@ -452,26 +412,20 @@ class ScriptEditor extends Component {
         // console.log('str ', str)
         const { editorState } = this.state;
         this.stackMode = false;
-        const selection = editorState.getSelection();
         const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
         const blockType = currentBlock.getType();
         const blockText = currentBlock.getText();
         const prevType = prevBlock && prevBlock.getType();
         const entityKey = currentBlock.getEntityAt(0);
         const entity = entityKey && Entity.get(entityKey).getType();
-
-        if(prevType == 'character' && blockType == 'dialogue'){
-            return false;
-        }
-        if(blockType == 'character') {
+        if(prevType == CHARACTER && blockType == DIALOGUE) return false;
+        if(blockType == CHARACTER) {
             const mCh =  MENTION_PATTERN3.test(blockText);
-            // console.log(mCh);
             if((str == '@' || str == '(')&& blockText.indexOf("@") !== -1) return true;
             if(mCh) return true;
             if((str == '@') && blockText.length == 0) {
                 return false;
             } else if(blockText.length > 0 &&MENTION_PATTERN.test(blockText.trim())) {
-                // console.log(blockText,MENTION_PATTERN.test(blockText.trim()))
                 return false;
             }
             else if(entity == 'MENTION' && (str == '(' || str == ' ')) {
@@ -483,14 +437,10 @@ class ScriptEditor extends Component {
                 return true
             }
         }
-        // if(prevType == 'character' && blockType !== 'dialogue') {
-        //     this.resetBlockType(editorState, 'dialogue');
-        //     return true;
-        // }
         return false;
     };
 
-    resetBlockType = (editorState, newType) => {
+    resetBlockType = (editorState, newType, text='') => {
         const contentState = editorState.getCurrentContent();
         const selectionState = editorState.getSelection();
         const key = selectionState.getStartKey();
@@ -507,22 +457,22 @@ class ScriptEditor extends Component {
                 focusOffset: 0,
             }),
         });
-        const newState = EditorState.push(editorState, newContentState, 'change-block-type');
+        let newState = EditorState.push(editorState, newContentState, 'change-block-type');
         this.onChange(newState)
     };
 
     onPressEnter = () => {
         const { editorState } = this.state;
-        // this.insertFragment('after', editorState, 'dialogue');
-        const newState = this.addEmptyBlock(editorState,  'dialogue');
-        this.onChange(newState, true)
+        this.insertFragment('after', editorState, DIALOGUE);
+        // const newState = this.addEmptyBlock(editorState,  'DIALOGUE');
+        // this.onChange(newState, true)
     };
 
-    addEmptyBlock = (editorState, type) => {
+    addEmptyBlock = (editorState, type, text='') => {
         const newBlock = new ContentBlock({
             key: genKey(),
             type: type,
-            text: '',
+            text: text,
             characterList: List()
         });
         const contentState = editorState.getCurrentContent()
@@ -589,11 +539,7 @@ class ScriptEditor extends Component {
         });
         const newEditorState = EditorState.push(editorState, newContentState, 'insert-fragment')
         // this.addEmptyBlock(newEditorState)
-        this.setState({
-            editorState: newEditorState
-        }, () => {
-            this.focusOnTheLastBlock()
-        })
+        this.onChange(newEditorState, true);
     };
 
     // type head
@@ -617,11 +563,9 @@ class ScriptEditor extends Component {
         let text = range.startContainer.textContent;
         // Remove text that appears after the cursor..
         text = text.substring(0, range.startOffset);
-        // ..and before the typeahead token
-        // const regex = /^(@|\()/;
         let index = text.lastIndexOf('@');
         if (index === -1) {
-            if(currentBlock.getType() != 'character') return null;
+            if(currentBlock.getType() != CHARACTER) return null;
             index = text.lastIndexOf('(');
         }
         if (index === -1) {
@@ -646,7 +590,6 @@ class ScriptEditor extends Component {
             return null;
         }
         const testRe = MENTION_REGEX.test(typeaheadRange.text) || MENTION_REGEX2.test(typeaheadRange.text);
-        // console.log(typeaheadRange.text, testRe)
         if(!testRe) {
             this.typeaheadState = null;
             return null;
@@ -655,8 +598,15 @@ class ScriptEditor extends Component {
         tempRange.setStart(tempRange.startContainer, typeaheadRange.start);
 
         const rangeRect = tempRange.getBoundingClientRect();
-        let [left, top] = [rangeRect.left, rangeRect.bottom];
-
+        const {
+            offsetLeft,
+            // offsetWidth, offsetHeight, offsetBottom, offsetTop
+        } = this.refs.editorWrapper;
+        const p = this.refs.editorWrapper.getBoundingClientRect()
+        const bot = rangeRect.bottom - p.bottom + p.height + rangeRect.height;
+        // const bot = offsetBottom + rangeRect.bottom - p.bottom + rangeRect.height +  p.height ;
+        const le = offsetLeft + rangeRect.left - p.left + 4;
+        let [left, top] = [le,bot];
         this.typeaheadState = {
             left,
             top,
@@ -694,7 +644,7 @@ class ScriptEditor extends Component {
     onDownArrow = (e) => this.onArrow(e, this.props.onDownArrow, 1);
 
     handleReturn = (e) => {
-        const { typeaheadState, editorState } = this.state;
+        const { editorState } = this.state;
         if (this.typeaheadState) {
             if (this.handleTypeaheadReturn) {
                 // console.log(this.typeaheadState)
@@ -727,9 +677,9 @@ class ScriptEditor extends Component {
             const entity = entityKey && Entity.get(entityKey).getType();
             // console.log('entity ', entity);
             if( currentBlock.getText() == "" ||
-                blockType == 'character' && entity === null) return true;
+                blockType == CHARACTER && entity === null) return true;
 
-            if((prevType == 'unstyled' || 'character' )&& blockType == 'character') {
+            if((prevType == 'unstyled' || CHARACTER )&& blockType == CHARACTER) {
                 // this.props.onChange(handleNewLine())
                 this.onPressEnter();
                 return true;
@@ -740,7 +690,7 @@ class ScriptEditor extends Component {
 
     exportToJSON = () => {
         const contentState = this.state.editorState.getCurrentContent();
-        const rawJson = Draft.convertToRaw(contentState);
+        const rawJson = convertToRaw(contentState);
         const jsonStr = JSON.stringify(rawJson, null, 1);
         const plainText = contentState.getPlainText();
         console.log(jsonStr)
@@ -752,12 +702,6 @@ class ScriptEditor extends Component {
         // this.createWithHTML(html)
     };
 
-    createWithHTML = (html) => {
-        const contentBlocks = Draft.convertFromHTML(html);
-        const contentState = Draft.ContentState.createFromBlockArray(contentBlocks);
-        const newEditorState = Draft.EditorState.createWithContent(contentState);
-        this.setState({ editorState: newEditorState });
-    };
     onFocus = () => {
         this.inFocus = true;
         this.props.onFocus();
@@ -772,7 +716,7 @@ class ScriptEditor extends Component {
         const block = contentState.getBlockForKey(selectionState.getStartKey());
         return block;
     };
-    addNewBlock = (editorState, newType = 'action', initialData = {}) => {
+    addNewBlock = (editorState, newType = ACTION, initialData = {}) => {
         const selectionState = editorState.getSelection();
         if (!selectionState.isCollapsed()) {
             return editorState;
@@ -800,7 +744,7 @@ class ScriptEditor extends Component {
         }
         return editorState;
     };
-    insertBlock (type) {
+    insertBlockUsingMobile (type) {
         const { editorState } = this.state;
         const { currentBlock, prevBlock, nextBlock } = this.getCurrentAndBeforBlocks(editorState);
         const blockMap = editorState.getCurrentContent().getBlockMap();
@@ -808,70 +752,58 @@ class ScriptEditor extends Component {
         const prevType = prevBlock && prevBlock.getType();
         const last = blockMap.last();
         const first = blockMap.first();
-        // if( currentBlock.getText().trim() == ""&& (last.getKey() == first.getKey())) return;
+        if(currentBlock.getText().trim() !== "" || (last.getKey() == first.getKey())) {
+            this.editorFoucs();
+            return;
+        };
         switch (type) {
-            case 'character':
-                // if(currentBlock.getType() !== 'action') return;
-                // this.insertBlock('character');
-                console.log('yyy', type)
-                const newEditorState = this.addNewBlock(editorState, 'character')
-                this.setState({
-                    editorState: newEditorState
-                    })
+            case CHARACTER:
+                if(prevType && prevType === CHARACTER || currentBlock.getText().trim() !== "") {
+                    this.editorFoucs();
+                    return;
+                };
+                this.onChange(this.insertCharacter(CHARACTER));
                 break;
-            case 'dialogue':
-                if(prevBlock.getType() !== 'character' || prevBlock.getType() !== 'dialogue') return;
+            case DIALOGUE:
+                if(prevType && prevType === ACTION || prevType === 'unstyled') {
+                    this.editorFoucs();
+                    return;
+                };
+                this.resetBlockType(editorState, DIALOGUE);
                 break;
-            case '':
+            case 'Parenthetical':
+                if((prevType && prevType === ACTION || prevType === 'unstyled') || blockType === CHARACTER) {
+                    this.editorFoucs();
+                    return;
+                }
+                let newS = EditorState.push(
+                    editorState, this.insertChar(editorState.getCurrentContent(), '('), 'apply-entity'
+                );
+                this.onChange(newS);
+                break;
+            case ACTION:
+                this.resetBlockType(editorState, ACTION);
                 break;
             default:
-
-
         }
-        // if(first.getKey() == last.getKey() && first.getType() == 'character') {
-        //     this.resetBlockType(editorState, 'action');
-        //     return;
-        // }
-        // if(currentBlock.getText() == "" &&
-        //     blockType === 'character' && (prevType === 'dialogue' || prevType === 'action')) {
-        //     this.resetBlockType(editorState, prevType);
-        //     return 'handled';
-        // }
-        // if((blockType == 'dialogue' || blockType == 'character' && nextBlock && nextBlock.getType() === 'dialogue')
-        //     && currentBlock.getText().trim() != "" && focusOffset == 0) {
-        //     return 'handled';
-        // }
-        // if(blockType === 'dialogue' && prevType === 'character') {
-        //     if((currentBlock.getText() == "" || focusOffset == 0)&& nextBlock && nextBlock.getType() === 'action') {
-        //         return 'handled'
-        //     }
-        //     return 'not-handled';
-        // }
-        // else if(blockType == 'dialogue' && (prevType =='character' || prevType =='dialogue')) {
-        //     if(currentBlock.getText() != '') return 'not-handled';
-        //     this.resetBlockType(editorState, 'action');
-        //     return 'handled';
-        // }
-        // else if(currentBlock.getText() == "" && blockType == 'character' && nextBlock && nextBlock.getType() === 'action') {
-        //     return 'handled'
-        // }
     }
     renderMobileActions() {
         const { isMobile } = this.props;
+        if(!isMobile) return;
         return (
-            <div className="mobile-actions">
-                <a onClick={this.insertBlock.bind(this, 'action')}>
+            <div className="script-contributions-ctrls">
+                <a onClick={this.insertBlockUsingMobile.bind(this, ACTION)}>
                     Action
                 </a>
-                <a onClick={this.insertBlock.bind(this, 'character')}>
+                <a onClick={this.insertBlockUsingMobile.bind(this, CHARACTER)}>
                     Character
                 </a>
-                <a onClick={this.insertBlock.bind(this, 'dialogue')}>
+                <a onClick={this.insertBlockUsingMobile.bind(this, DIALOGUE)}>
                     Dialogue
                 </a>
-                {/*<a onClick={this.insertBlock.bind(this, 'dialogue')}>*/}
-                    {/*Parenthetical*/}
-                {/*</a>*/}
+                <a onClick={this.insertBlockUsingMobile.bind(this, 'Parenthetical')}>
+                    Parenthetical
+                </a>
 
             </div>
         )
@@ -879,11 +811,13 @@ class ScriptEditor extends Component {
     render() {
         const { readOnly, placeholder } = this.props;
         return (
-            <div onClick={this.editorFoucs}>
+            <div ref="editorWrapper"
+                // onClick={this.editorFoucs}
+            >
                 {this.renderTypeahead()}
                 {this.renderCharacterDescription()}
                 { this.renderMobileActions() }
-                <div className={'editor'}>
+                <div className={'editor-s'}>
                     <Editor
                         ref="editor"
                         onTab={this.onTab}
@@ -895,8 +829,8 @@ class ScriptEditor extends Component {
                         handleReturn={this.handleReturn}
                         handleBeforeInput={this.handleBeforeInput}
                         blockStyleFn={this.blockStyleFn}
-                        blockRendererFn={this.blockRendererFn}
-                        blockRenderMap={extendedBlockRenderMap}
+                        // blockRendererFn={this.blockRendererFn}
+                        // blockRenderMap={extendedBlockRenderMap}
                         handleKeyCommand={this.handleKeyCommand}
                         keyBindingFn={myKeyBindingFn}
                         placeholder={`${!this.inFocus ? placeholder: ''}`}
@@ -918,9 +852,10 @@ ScriptEditor.defaultProps = {
     onBlur: () => null,
     onFocus: () => null,
     onTab: () => null,
-    readOnly: false,
     initialState: null,
+    readOnly: false,
+    isMobile: false,
     placeholder: 'Enter script contribution here'
 };
 
-export default ScriptEditor;
+export  { ScriptEditor };

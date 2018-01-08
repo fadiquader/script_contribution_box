@@ -1,11 +1,7 @@
 import React, { PureComponent } from 'react';
 
 
-export default class Action extends PureComponent {
-    constructor(props) {
-        super(props);
-    }
-
+export class Action extends PureComponent {
     render() {
         return (
             <div className="action">
