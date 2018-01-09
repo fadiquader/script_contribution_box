@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
-import CharacterContainer from './CharacterContainer';
+import { MentionItem } from './MentionItem';
 import { normalizeSelectedIndex, filterPeople } from './utils';
 
 class Mentions extends Component {
@@ -20,43 +19,31 @@ class Mentions extends Component {
         const { CharacterComponent, CharacterItemComponent } = this.props;
 
         return (
-            <div>
-                <ul className={`typeahead`} style={typeaheadStyle}>
+            <div className={`typeahead`}  style={typeaheadStyle}>
+                <ul >
                     {filteredCharacters.map((character, index) => {
                         const isActive = index === normalizedIndex;
                         const className = `person ${isActive ? 'selectedPerson' : ''}`;
                         const showPopover = isActive && firstChar === '@' && CharacterComponent !== null;
                         return (
-                            <li id={`mention_${index}`}
-                                key={`mention_${index}`}
-                                className={className}
-                                onMouseOver={() => onMouseOver(index)}
-                                onMouseDown={() => onTypeheadClick(index)}
-                                onTouchEnd={(e) => {
-                                    e.preventDefault();
-                                    onTypeheadClick(index)
-                                }}
-                                onContextMenu={(e) => {
-                                    e.preventDefault();
-                                    onTypeheadClick(index) ;
-                                }}
-
-
-                            >
-                                {CharacterItemComponent ? <CharacterItemComponent character={character} />:
-                                    <div>{character.label || character.name }</div>
-                                }
-                                {showPopover ? <CharacterContainer>
-                                    <CharacterComponent character={character} />
-                                </CharacterContainer>: ''}
-                            </li>
+                            <MentionItem key={`mention_${index}`}
+                                         index={index}
+                                         isActive={isActive}
+                                         className={className}
+                                         onTypeheadClick={onTypeheadClick}
+                                         onMouseOver={onMouseOver}
+                                         CharacterItemComponent={CharacterItemComponent}
+                                         CharacterComponent={CharacterComponent}
+                                         showPopover={showPopover}
+                                         character={character}
+                            />
                         );
                     })}
-                    {firstChar === '@' &&
-                    <li className="add-character" onMouseDown={() => onTypeheadClick(-1)}>
-                        <span>Add Character</span>
-                    </li>}
                 </ul>
+                {firstChar === '@' &&
+                <div className="add-character" onMouseDown={() => onTypeheadClick(-1)}>
+                    <span>Add Character</span>
+                </div>}
             </div>
         );
     }

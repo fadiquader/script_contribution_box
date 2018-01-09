@@ -54,7 +54,71 @@ const App = () => {
             occupation: "Jedi Knight",
             race: "White/Caucasian",
             screenplay_display_name: "Ben"
-        }
+        },
+        {
+            name: 'Kris Hartvigsen2',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen3',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen4',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen5',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen6',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen7',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen8',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
+        {
+            name: 'Kris Hartvigsen9',
+            description: "A shabby old desert-rat-of-a-man with an ancient leathery face, cracked and weathered by exotic climates, set off by dark, penetrating eyes and a scraggly white beard. Wears flowing brown robes, carries a lightsaber.",
+            gender: "Male",
+            occupation: "Jedi Knight",
+            race: "White/Caucasian",
+            screenplay_display_name: "Ben"
+        },
     ];
     const initialState = `
     {

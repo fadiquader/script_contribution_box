@@ -35,27 +35,6 @@ import './index.css';
 
 const {hasCommandModifier} = KeyBindingUtil;
 
-const blockRenderMap = Map({
-    // 'character': {
-    //     element: 'div',
-    //     wrapper: <Character />
-    // },
-    // 'dialogue': {
-    //     element: 'div',
-    //     wrapper: <Dialogue />
-    // },
-    // 'unstyled': {
-    //     element: 'div',
-    //     wrapper: <Action />
-    // },
-    // 'action': {
-    //     element: 'div',
-    //     wrapper: <Action />
-    // }
-});
-
-const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
-
 // const MENTION_ENTITY_KEY = Entity.create('MENTION', 'IMMUTABLE');
 const myKeyBindingFn = (e) => {
     if (e.keyCode === 83 /* `S` key */ && hasCommandModifier(e)) {
@@ -89,7 +68,9 @@ class ScriptEditor extends Component {
                 { name: 'O.C' },
                 { name: 'O.S' }
             ]
-        }
+        };
+        this.onFocus = this._onFocus.bind(this);
+        this.onBlur = this._onBlur.bind(this);
     }
 
     componentWillMount() {
@@ -434,7 +415,6 @@ class ScriptEditor extends Component {
     }
 
     handleBeforeInput = (str) => {
-        // console.log('str ', str)
         const { editorState } = this.state;
         this.stackMode = false;
         const { currentBlock, prevBlock } = this.getCurrentAndBeforBlocks(editorState);
@@ -727,15 +707,15 @@ class ScriptEditor extends Component {
         // this.createWithHTML(html)
     };
 
-    onFocus = () => {
+    _onFocus() {
         this.inFocus = true;
         this.props.onFocus();
     };
-    onBlur = () => {
+    _onBlur() {
         this.inFocus = false;
         this.props.onBlur();
     };
-    getCurrentBlock = (editorState) => {
+    getCurrentBlock(editorState) {
         const selectionState = editorState.getSelection();
         const contentState = editorState.getCurrentContent();
         const block = contentState.getBlockForKey(selectionState.getStartKey());
@@ -829,7 +809,6 @@ class ScriptEditor extends Component {
                 <a onClick={this.insertBlockUsingMobile.bind(this, 'Parenthetical')}>
                     Parenthetical
                 </a>
-
             </div>
         )
     }

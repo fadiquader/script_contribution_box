@@ -1,19 +1,26 @@
 .editor-s {
   min-height: 80px;
-  padding: 10px;
+  padding: 16px;
+  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  border: 1px solid #ddd;
   /*background-color: white;*/
 }
-
 .typeahead {
-  width: 200px;
-  margin: 0;
-  padding: 0;
   border: 1px solid #ccc;
   background: white;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .1), 0 1px 10px rgba(0, 0, 0, .35);
   border-radius: 3px;
-  list-style-type: none;
   z-index: 2;
+  font-family: Arial;
+}
+.typeahead ul {
+  width: 200px;
+  /*max-height: 250px;*/
+  /*overflow-y: auto;*/
+  margin: 0;
+  padding: 8px 0 0 0 ;
+  list-style-type: none;
+  /*background: white;*/
 }
 .person {
   margin: 0;
@@ -24,7 +31,7 @@
   display: block;
 }
 .selectedPerson {
-  background: #63a29c;
+  background: #2980b9;
   color: white;
   cursor: pointer;
 }
@@ -34,7 +41,7 @@
   font-size: 13px;
 }
 .mention {
-  color: #63a29c;
+  color: #2980b9;
   /*cursor: pointer;*/
   position: relative;
 }
@@ -73,7 +80,7 @@
   padding: 8px;
 }
 .character-information-title {
-  background-color: #63a29c;
+  background-color: #2980b9;
   color: white;
   margin: -8px -8px 8px -8px;
   padding: 8px;

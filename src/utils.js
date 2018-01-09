@@ -10,5 +10,5 @@ export function normalizeSelectedIndex(selectedIndex, max) {
 export function filterPeople(query, t, data) {
     return data[t].filter(person => {
         return person.name.toLowerCase().startsWith(query.toLowerCase());
-    });
+    }).slice(0,10);
 }
