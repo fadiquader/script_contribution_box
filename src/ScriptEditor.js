@@ -19,6 +19,7 @@ import { Action } from './Action';
 import {Character }  from './Character';
 import { Dialogue }  from './Dialogue';
 import { decorator } from './strategies';
+import { AddButton } from './AddButton';
 import { normalizeSelectedIndex, filterPeople } from './utils'
 import {
     MENTION_REGEX,
@@ -816,11 +817,16 @@ class ScriptEditor extends Component {
         const { readOnly, placeholder } = this.props;
         return (
             <div ref="editorWrapper"
+                 className="editor-wrapper"
                 // onClick={this.editorFoucs}
             >
                 {this.renderTypeahead()}
                 {this.renderCharacterDescription()}
                 { this.renderMobileActions() }
+                <AddButton
+                    editorState={this.state.editorState}
+                    getEditorState={this.getEditorState}
+                    setEditorState={this.onChange} />
                 <div className={'editor-s'}>
                     <Editor
                         ref="editor"

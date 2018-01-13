@@ -1,9 +1,19 @@
+.editor-wrapper {
+  background-color: #cccccc;
+}
 .editor-s {
   min-height: 80px;
   padding: 16px;
-  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  /*box-shadow: inset 0px 1px 8px -3px #ABABAB;*/
   border: 1px solid #ddd;
-  /*background-color: white;*/
+  max-width: 8.5in;
+  margin: 0 auto;
+  background-color: white;
+}
+.DraftEditor-root {
+  background-color: white;
+  max-width: 6in;
+  margin: 0 auto;
 }
 .typeahead {
   border: 1px solid #eee;
@@ -44,6 +54,7 @@
   color: #2980b9;
   /*cursor: pointer;*/
   position: relative;
+  text-transform: uppercase;
 }
 .action {
   padding-top: 8px;
@@ -144,6 +155,86 @@
   overflow-y: hidden;
 }
 
+.add-btn {
+  outline: 0;
+  border: none;
+  width: 32px;
+  padding: 0;
+  font-size: 20px;
+  border-radius: 50%;
+  height: 32px;
+  color: #fff;
+  background-color: #1890ff;
+  line-height: 1.5;
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+.add-btn:hover {
+  background-color: #40a9ff;
+}
+.add-btn:focus {
+  background-color: #40a9ff;
+}
+.add-btn:active {
+  background-color: #096dd9;
+}
+.open-button {
+  transform: rotate(45deg);
+}
+
+.fe-side-toolbar{
+  position: absolute;
+  z-index: 9;
+  left: 20%;
+  top: 0;
+
+  transition: all .2s ease;
+}
+.fe-side-toolbar-btns {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: 0.3s all ease;
+  opacity: 0;
+  display: block;
+  background-color: white;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background-clip: padding-box;
+
+}
+.fe-side-toolbar-btns .arrow {
+  box-shadow: -1px -1px 4px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  width: 7.07106781px;
+  height: 7.07106781px;
+  transform: rotate(45deg);
+  position: absolute;
+  display: block;
+  border-color: transparent;
+  border-style: solid;
+  top: -5px;
+
+}
+.fe-side-toolbar-btns .arrow {
+
+}
+.fe-side-toolbar-btns.fe-side-toolbar-open {
+  opacity: 1;
+
+}
+.fe-side-toolbar-btns .StyleButton {
+  display: block;
+  opacity: 1;
+  margin: 4px 0;
+}
 /*@media (max-width: 767px) {*/
 /*.script-editor {*/
 /**/
